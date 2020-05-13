@@ -3,7 +3,7 @@ import unittest
 import datetime
 from shutil import copyfile
 
-from PhotoManagement.Image import read_capture_date_and_time, modTime
+from PhotoManagement.Image import read_capture_date_and_time, setModTime, getModTime
 
 
 class TestImage (unittest.TestCase):
@@ -16,11 +16,13 @@ class TestImage (unittest.TestCase):
         pth = os.path.join(os.getcwd(),"tests","test.jpg")
         date = read_capture_date_and_time(pth)
 
-        self.assertEqual(date, datetime.datetime(2020, 4, 2, 12, 58, 12))
+        self.assertEqual(date, datetime.datetime(2020, 4, 2, 12, 58, 23))
         
+    def test_mod_time(self):
+        pth = os.path.join(os.getcwd(),"tests","test.jpg")
         date2 = datetime.datetime(2021, 4, 2, 12, 58, 12)
-        modTime(pth, date2)
-        date = read_capture_date_and_time(pth)
+        setModTime(pth, date2)
+        date = getModTime(pth)
         self.assertEqual(date, date2)
 
         

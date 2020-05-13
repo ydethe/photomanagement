@@ -9,3 +9,4 @@ def main():
     pth = sys.argv[1]
     exif_data = read_capture_date_and_time(pth)
     print(exif_data)
+    

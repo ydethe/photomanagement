@@ -10,7 +10,7 @@ def read_capture_date_and_time(pth):
     im = Image.open(pth)
     exif_data = im._getexif()
     im.close()
-    
+
     labeled = {}
     for (key, val) in exif_data.items():
         labeled[TAGS.get(key)] = val
@@ -21,6 +21,12 @@ def read_capture_date_and_time(pth):
 
     return date_time_obj
 
-def modTime(pth, dt):
+def setModTime(pth, dt):
     modTime = time.mktime(dt.timetuple())
     os.utime(pth, (modTime, modTime))
+
+def getModTime(pth):
+    mt = os.path.getmtime(pth)
+    dt = datetime.datetime.fromtimestamp(mt)
+    return dt
+    
