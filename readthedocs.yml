@@ -1,0 +1,21 @@
+# readthedocs.yml
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+# sphinx-build -T -b html -d _build/doctrees-readthedocs -D language=en . _build/html
+
+# Required
+version: 2
+
+# Build documentation in the docs/ directory with Sphinx
+sphinx:
+  configuration: docs/conf.py
+  builder: html
+
+# Optionally build your docs in additional formats such as PDF and ePub
+formats: []
+
+conda:
+  environment: docs/environment.yml
+
+build:
+  image: stable
