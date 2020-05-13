@@ -23,8 +23,6 @@ cache:
 
 before_script:
   - export PIP_CACHE_DIR="/opt/cache/pip"
-  - conda env create -f docs/environment.yml
-  - source activate rtd_conda_env
   - python -V  # Print out python version for debugging
   - pip install --upgrade pip
   - echo $CI_COMMIT_TAG
@@ -36,7 +34,7 @@ stages:
 test:
   stage: test
   script:
-    - pip install tox setuptools docutils tox-conda
+    - pip install tox setuptools docutils
     - tox -e py
   artifacts:
     paths:
