@@ -125,14 +125,14 @@ class PhotoProcessor (object):
         dt,ct = self.get_created_time_from_json(pth)
             
         if dt is None:
-                try:
-                    ds = os.path.split(pth)[-1][6:-9]
-                    dt = datetime.strptime(ds, '%y-%m-%d %H-%M-%S')
-                    ct = dt.strftime("%Y:%m:%d %H:%M:%S").encode("utf-8")
-                except:
-                    print("[ERREUR]Analyse de %s -> %s" % (pth,ds))
-                    dt = None
-            
+            try:
+                ds = os.path.split(pth)[-1][6:-9]
+                dt = datetime.strptime(ds, '%y-%m-%d %H-%M-%S')
+                ct = dt.strftime("%Y:%m:%d %H:%M:%S").encode("utf-8")
+            except:
+                print("[ERREUR]Analyse de %s -> %s" % (pth,ds))
+                dt = None
+        
         if dt is None:
             print("[ERREUR]Aucune date trouvee pour vidéo", pth)
             dt,ct = self.process_manually(pth)
