@@ -40,7 +40,7 @@ extensions = [
     "sphinx.ext.napoleon",
 ]
 
-apidoc_module_dir = "../SystemControl"
+apidoc_module_dir = "../PhotoManagement"
 apidoc_output_dir = "."
 apidoc_excluded_paths = ["tests"]
 apidoc_separate_modules = True
@@ -63,7 +63,7 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"SystemControl"
+project = u"PhotoManagement"
 copyright = u"2020, Y. BLAUDIN DE THE"
 author = u"Y. BLAUDIN DE THE"
 
@@ -151,7 +151,7 @@ html_theme = "sphinx_rtd_theme"
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
 #
-# html_title = u'SystemControl v4.1'
+# html_title = u'PhotoManagement v4.1'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #
@@ -251,7 +251,7 @@ html_static_path = ["_static"]
 # html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "SystemControldoc"
+htmlhelp_basename = "PhotoManagementdoc"
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -276,8 +276,8 @@ latex_elements = {
 latex_documents = [
     (
         master_doc,
-        "SystemControl.tex",
-        u"SystemControl Documentation",
+        "PhotoManagement.tex",
+        u"PhotoManagement Documentation",
         u"Y. BLAUDIN DE THE",
         "manual",
     ),
@@ -314,7 +314,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "systemcontrol", u"SystemControl Documentation", [author], 1)]
+man_pages = [(master_doc, "photomanagement", u"PhotoManagement Documentation", [author], 1)]
 
 # If true, show URL addresses after external links.
 #
@@ -329,10 +329,10 @@ man_pages = [(master_doc, "systemcontrol", u"SystemControl Documentation", [auth
 texinfo_documents = [
     (
         master_doc,
-        "SystemControl",
-        u"SystemControl Documentation",
+        "PhotoManagement",
+        u"PhotoManagement Documentation",
         author,
-        "SystemControl",
+        "PhotoManagement",
         "One line description of project.",
         "Miscellaneous",
     ),
