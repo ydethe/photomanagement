@@ -72,9 +72,10 @@ author = u"Y. BLAUDIN DE THE"
 # built documents.
 #
 from setuptools.config import read_configuration
+
 conf_pth = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "setup.cfg")
 conf_dict = read_configuration(conf_pth)
-release = conf_dict['metadata']['version']
+release = conf_dict["metadata"]["version"]
 
 # The short X.Y version.
 version = ".".join(release.split(".")[:2])
@@ -314,7 +315,9 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "photomanagement", u"PhotoManagement Documentation", [author], 1)]
+man_pages = [
+    (master_doc, "photomanagement", u"PhotoManagement Documentation", [author], 1)
+]
 
 # If true, show URL addresses after external links.
 #
