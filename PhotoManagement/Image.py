@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 import os
 import time
 
@@ -19,12 +19,12 @@ def _jpeg_cdt(pth):
 
     # '2020:04:02 12:58:12'
     date_time_str = labeled["DateTimeOriginal"]
-    date_time_obj = datetime.datetime.strptime(date_time_str, "%Y:%m:%d %H:%M:%S")
+    date_time_obj = datetime.strptime(date_time_str, "%Y:%m:%d %H:%M:%S")
 
     return date_time_obj
 
 
-def _jpeg_png(pth):
+def _png_cdt(pth):
     im = Image.open(pth)
     exif_data = im._getexif()
     im.close()
@@ -41,23 +41,23 @@ def _jpeg_png(pth):
     metadata = extractMetadata(parser)
     d = metadata.exportDictionary()
 
-    f = open("log_hachoir.txt", "w")
-    f.write(str(d))
-    f.close()
+    # f = open("log_hachoir.txt", "w")
+    # f.write(str(d))
+    # f.close()
 
     # '2020:04:02 12:58:12'
     date_time_str = labeled["DateTimeOriginal"]
-    date_time_obj = datetime.datetime.strptime(date_time_str, "%Y:%m:%d %H:%M:%S")
+    date_time_obj = datetime.strptime(date_time_str, "%Y:%m:%d %H:%M:%S")
 
     return date_time_obj
 
 
-def read_capture_date_and_time(pth):
+def read_capture_date_and_time(pth:str)->datetime:
     _, ext = os.path.splitext(pth.lower())
     if ext == ".jpg" or ext == ".jpeg" or ext == ".tiff":
         dt = _jpeg_cdt(pth)
     elif ext == ".png" or ext == ".heic" or ext == ".gif":
-        dt = _jpeg_png(pth)
+        dt = _png_cdt(pth)
     else:
         print("[ERREUR]%s : extension inconnu" % pth)
 

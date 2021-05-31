@@ -33,8 +33,9 @@ class Person(Document):
 
 class Photo(Document):
     file = StringField()
+    hash=StringField(unique=True)
     place_taken = PointField()
-    miniature = ImageField(thumbnail_size=(200,200))
+    miniature = ImageField(thumbnail_size=(200, 200))
     date_taken = DateTimeField()
     faces = ListField(ReferenceField(Face))
     album = ReferenceField("Album")

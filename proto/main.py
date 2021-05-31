@@ -1,28 +1,58 @@
 import pickle
+import hashlib
 
 import face_recognition
 from PIL import Image, ImageDraw
 from mongoengine import connect
 
 from db import Face, Photo
+from Image import read_metadata
 
 
 def import_image(pth):
+    metadata = read_metadata(pth)
+    gps_info = metadata.get("GPSInfo", {})
+    lat = gps_info.get("Latitude", None)
+    lon = gps_info.get("Longitude", None)
+    place_taken = {"type": "Point", "coordinates": [lon, lat]}
     image = face_recognition.load_image_file(pth)
+    
+    with open(pth, 'rb') as afile:
+        buf = afile.read()
+        h = hashlib.sha224(buf).hexdigest()
+
+    photo = Photo(
+        file=pth,
+        hash=h,
+        place_taken=place_taken,
+        date_taken=metadata["DateTimeOriginal"],
+    )
+    photo.save()
+
+    # ======================
+    # Miniature creation
+    # ======================
     img = Image.fromarray(image, "RGB")
-    w,h=img.size
-    if w<h:
-        img=img.resize(size=(200,200),resample=Image.HAMMING, box=(0,(h-w)//2,w,w))
+    w, h = img.size
+    if w < h:
+        img = img.resize(
+            size=(200, 200), resample=Image.HAMMING, box=(0, (h - w) // 2, w, w)
+        )
     else:
-        img=img.resize(size=(200,200),resample=Image.HAMMING, box=((w-h)//2,0,h,h))
-    img.save('mini.jpg')
+        img = img.resize(
+            size=(200, 200), resample=Image.HAMMING, box=((w - h) // 2, 0, h, h)
+        )
+    img.save("%s.jpg" % photo.id)
+    my_mini = open("%s.jpg" % photo.id, "rb")
+    photo.miniature.replace(my_mini, filename=pth)
+    photo.save()
+
+    # ======================
+    # Faces detection
+    # ======================
     face_locations = face_recognition.face_locations(image)
     face_encodings = face_recognition.face_encodings(image, face_locations)
 
-    photo = Photo(file=pth)
-    my_mini=open('mini.jpg','rb')
-    photo.miniature.replace(my_mini, filename=pth)
-    photo.save()
     lfaces = []
     for blob, loc in zip(face_encodings, face_locations):
         # ((Upper left x, upper left y), (lower right x, lower right y)
@@ -53,3 +83,6 @@ connect("photo_mgt")
 pth = "Mars2020/Photo 20-03-14 10-58-45 0573.jpg"
 photo = import_image(pth)
 photo.showFaces()
+
+for p in Photo.objects:
+    print(p.id)
