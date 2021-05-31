@@ -17,10 +17,6 @@ import face_recognition
 import numpy as np
 
 
-# mongod --config /opt/homebrew/etc/mongod.conf --fork
-connect("photo_mgt")
-
-
 class Face(Document):
     blob = BinaryField()
     xleft = IntField()
@@ -28,12 +24,17 @@ class Face(Document):
     ydown = IntField()
     yup = IntField()
     photo = ReferenceField("Photo")
+    person = ReferenceField("Person")
+
+
+class Person(Document):
+    faces = ListField(ReferenceField(Face))
 
 
 class Photo(Document):
     file = StringField()
     place_taken = PointField()
-    miniature = ImageField()
+    miniature = ImageField(thumbnail_size=(200,200))
     date_taken = DateTimeField()
     faces = ListField(ReferenceField(Face))
     album = ReferenceField("Album")
