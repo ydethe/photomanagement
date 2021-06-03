@@ -1,4 +1,5 @@
 import pickle
+import io
 from enum import unique
 from mongoengine import (
     connect,
@@ -12,6 +13,7 @@ from mongoengine import (
     DateTimeField,
     BinaryField,
 )
+import mongoshapes as ms
 from PIL import Image, ImageDraw
 import face_recognition
 import numpy as np
@@ -24,7 +26,7 @@ class Face(Document):
     ydown = IntField()
     yup = IntField()
     photo = ReferenceField("Photo")
-    person = ReferenceField("Person")
+    person = ReferenceField("Person", required=True)
 
 
 class Person(Document):
@@ -32,24 +34,23 @@ class Person(Document):
 
 
 class Photo(Document):
-    file = StringField()
-    hash=StringField(unique=True)
-    place_taken = PointField()
+    photo = ImageField()
+    hash = StringField(unique=True)
+    place_taken = ms.PointField()
     miniature = ImageField(thumbnail_size=(200, 200))
     date_taken = DateTimeField()
     faces = ListField(ReferenceField(Face))
     album = ReferenceField("Album")
 
     def showFaces(self):
-        image = face_recognition.load_image_file(self.file)
+        image = self.photo.read()
 
-        img = Image.fromarray(image, "RGB")
+        img = Image.open(io.BytesIO(image))
+        # img = Image.fromarray(image, "RGB")
         img_with_red_box = img.copy()
         img_with_red_box_draw = ImageDraw.Draw(img_with_red_box)
 
         for face in self.faces:
-            blob = pickle.loads(face.blob)
-
             img_with_red_box_draw.rectangle(
                 [(face.xleft, face.yup), (face.xright, face.ydown)],
                 outline="red",
