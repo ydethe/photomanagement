@@ -38,7 +38,7 @@ class Photo(Document):
     hash = StringField(unique=True)
     place_taken = ms.PointField()
     miniature = ImageField(thumbnail_size=(200, 200))
-    date_taken = DateTimeField()
+    date_taken = DateTimeField(required=True)
     faces = ListField(ReferenceField(Face))
     album = ReferenceField("Album")
 

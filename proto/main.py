@@ -1,5 +1,6 @@
 import pickle
 import hashlib
+import os
 
 import numpy as np
 import face_recognition
@@ -12,12 +13,19 @@ from Image import read_metadata
 
 
 def import_image(pth: str) -> Photo:
+    print(72 * "=")
+    print(pth)
     metadata = read_metadata(pth)
     gps_info = metadata.get("GPSInfo", {})
     lat = gps_info.get("Latitude", None)
     lon = gps_info.get("Longitude", None)
-    alt = gps_info.get("GPSAltitude", None)
-    place_taken = ms.Point([lon, lat, alt])
+    alt = gps_info.get("GPSAltitude", 0)
+    if not lon is None and not lat is None:
+        place_taken = ms.Point([lon, lat, alt])
+    else:
+        print("No location data")
+        place_taken = None
+    date_taken = metadata.get("DateTimeOriginal", None)
     # place_taken = {"type": "Point", "coordinates": [lon, lat,alt]}
     image = face_recognition.load_image_file(pth)
 
@@ -25,8 +33,13 @@ def import_image(pth: str) -> Photo:
         buf = afile.read()
         h = hashlib.sha224(buf).hexdigest()
 
-    photo = Photo(hash=h, date_taken=metadata["DateTimeOriginal"],)
-    photo.place_taken = place_taken
+    if date_taken is None:
+        photo = Photo(hash=h)
+        print("No date and time data")
+    else:
+        photo = Photo(hash=h, date_taken=metadata["DateTimeOriginal"])
+    if not place_taken is None:
+        photo.place_taken = place_taken
     photo.photo.replace(open(pth, "rb"), filename=pth)
     photo.save()
 
@@ -80,18 +93,20 @@ def import_image(pth: str) -> Photo:
                 Jmin = J
                 matching_person = p
 
-        print(Jmin)
-        if matching_person is None or Jmin > 0:
+        if matching_person is None or Jmin > 0.5:
             matching_person = Person()
-            print("Creation Person")
+            print("Creation Person", Jmin)
             matching_person.save()
             face.person = matching_person
             face.save()
             matching_person.faces = [face]
             matching_person.save()
         else:
+            print("Found person", Jmin)
             face.person = matching_person
             face.save()
+            matching_person.faces.append(face)
+            matching_person.save()
 
     photo.faces = lfaces
     photo.save()
@@ -104,9 +119,18 @@ connect("photo_mgt")
 
 # pth = "Mars2020/Photo 20-03-13 17-53-56 0565.jpg"
 # pth = "Mars2020/Photo 20-03-14 10-58-42 0572.jpg"
-pth = "Mars2020/Photo 20-03-14 10-58-45 0573.jpg"
-photo = import_image(pth)
-photo.showFaces()
+# pth = "Mars2020/Photo 20-03-14 10-58-45 0573.jpg"
+# pth = "Mars2020/Photo 20-03-13 17-53-52 0558.jpg"
+# photo = import_image(pth)
+# photo.showFaces()
+
+for (root, dirs, files) in os.walk("Mars2020"):
+    for f in files:
+        pth = os.path.join(root, f)
+        _, ext = os.path.splitext(pth)
+        if ext.lower() in [".png", ".jpg", ".jpeg"]:
+            photo = import_image(pth)
+
 
 # for p in Photo.objects:
 #     print(p.id)

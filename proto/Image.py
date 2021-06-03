@@ -1,6 +1,7 @@
 from datetime import datetime
 import os
 import time
+from datetime import datetime
 
 from PIL import Image
 from PIL.ExifTags import GPSTAGS, TAGS
@@ -28,23 +29,33 @@ def get_decimal_coordinates(info):
 def read_metadata(pth):
     im = Image.open(pth)
     exif_data = im._getexif()
-    im.close()
+    _, fn = os.path.split(pth)
+    bn, _ = os.path.splitext(fn)
 
-    if exif_data is not None:
-        lkeys = list(exif_data.keys())
+    # with open("md/metadata_%s.txt" % fn, "w") as f:
+    #     f.write("%s\n" % pth)
+    #     f.write(str(exif_data))
+    # im.close()
+
+    if exif_data is None or not "DateTimeOriginal" in exif_data.keys():
+        # bn="Photo 20-03-13 17-53-52 0558"
+        dt = datetime.strptime(bn, "Photo %y-%m-%d %H-%M-%S %f")
+        return {"DateTimeOriginal": dt}
+
+    lkeys = list(exif_data.keys())
+    for key in lkeys:
+        name = TAGS.get(key, key)
+        exif_data[name] = exif_data.pop(key)
+
+    if "GPSInfo" in exif_data:
+        lkeys = list(exif_data["GPSInfo"].keys())
         for key in lkeys:
-            name = TAGS.get(key, key)
-            exif_data[name] = exif_data.pop(key)
+            name = GPSTAGS.get(key, key)
+            exif_data["GPSInfo"][name] = exif_data["GPSInfo"].pop(key)
 
-        if "GPSInfo" in exif_data:
-            lkeys = list(exif_data["GPSInfo"].keys())
-            for key in lkeys:
-                name = GPSTAGS.get(key, key)
-                exif_data["GPSInfo"][name] = exif_data["GPSInfo"].pop(key)
-
-    lat, lon = get_decimal_coordinates(exif_data["GPSInfo"])
-    exif_data["GPSInfo"]["Latitude"] = lat
-    exif_data["GPSInfo"]["Longitude"] = lon
+        lat, lon = get_decimal_coordinates(exif_data["GPSInfo"])
+        exif_data["GPSInfo"]["Latitude"] = lat
+        exif_data["GPSInfo"]["Longitude"] = lon
 
     # f = open("log_pil.txt", "w")
     # f.write(str(exif_data))
@@ -57,3 +68,8 @@ def read_metadata(pth):
     )
 
     return exif_data
+
+
+if __name__ == "__main__":
+    pth = "Mars2020/Photo 20-03-28 15-35-36 0667.jpg"
+    read_metadata(pth)
