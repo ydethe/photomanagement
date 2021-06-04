@@ -33,24 +33,25 @@ class Person(Document):
     faces = ListField(ReferenceField(Face))
 
     def showFaces(self):
-        for face in self.faces:
+        for k, face in enumerate(self.faces):
             image = face.photo.photo.read()
+            img_with_red_box = Image.open(io.BytesIO(image))
 
-            img = Image.open(io.BytesIO(image))
-            # img = Image.fromarray(image, "RGB")
-            img_with_red_box = img.copy()
+            # Creating a miniature of the person's face
+            mini = img_with_red_box.resize(
+                size=(face.xright - face.xleft, face.ydown - face.yup),
+                box=(face.xleft, face.yup, face.xright, face.ydown),
+            )
+            mini.save("persons/%s_%i.jpg" % (self.id, k))
+
+            # Drawing a red rectangle on the photo to locate the person
             img_with_red_box_draw = ImageDraw.Draw(img_with_red_box)
-
-            for face in self.faces:
-                img_with_red_box_draw.rectangle(
-                    [(face.xleft, face.yup), (face.xright, face.ydown)],
-                    outline="red",
-                    width=3,
-                )
-
+            img_with_red_box_draw.rectangle(
+                [(face.xleft, face.yup), (face.xright, face.ydown)],
+                outline="red",
+                width=3,
+            )
             img_with_red_box.show()
-
-            del img_with_red_box, image, img, img_with_red_box_draw
 
 
 class Photo(Document):
