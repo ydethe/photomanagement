@@ -32,6 +32,26 @@ class Face(Document):
 class Person(Document):
     faces = ListField(ReferenceField(Face))
 
+    def showFaces(self):
+        for face in self.faces:
+            image = face.photo.photo.read()
+
+            img = Image.open(io.BytesIO(image))
+            # img = Image.fromarray(image, "RGB")
+            img_with_red_box = img.copy()
+            img_with_red_box_draw = ImageDraw.Draw(img_with_red_box)
+
+            for face in self.faces:
+                img_with_red_box_draw.rectangle(
+                    [(face.xleft, face.yup), (face.xright, face.ydown)],
+                    outline="red",
+                    width=3,
+                )
+
+            img_with_red_box.show()
+
+            del img_with_red_box, image, img, img_with_red_box_draw
+
 
 class Photo(Document):
     photo = ImageField()

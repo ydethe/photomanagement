@@ -124,13 +124,15 @@ connect("photo_mgt")
 # photo = import_image(pth)
 # photo.showFaces()
 
-for (root, dirs, files) in os.walk("Mars2020"):
-    for f in files:
-        pth = os.path.join(root, f)
-        _, ext = os.path.splitext(pth)
-        if ext.lower() in [".png", ".jpg", ".jpeg"]:
-            photo = import_image(pth)
+# for (root, dirs, files) in os.walk("Mars2020"):
+#     for f in files:
+#         pth = os.path.join(root, f)
+#         _, ext = os.path.splitext(pth)
+#         if ext.lower() in [".png", ".jpg", ".jpeg"]:
+#             photo = import_image(pth)
 
+p = Person.objects(id="60b93fd95f7b58dce3daffe8").first()
+p.showFaces()
 
 # for p in Photo.objects:
 #     print(p.id)
