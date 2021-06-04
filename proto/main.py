@@ -2,6 +2,7 @@ import pickle
 import hashlib
 import os
 
+import tqdm
 import numpy as np
 import face_recognition
 from PIL import Image, ImageDraw
@@ -131,8 +132,11 @@ connect("photo_mgt")
 #         if ext.lower() in [".png", ".jpg", ".jpeg"]:
 #             photo = import_image(pth)
 
-p = Person.objects(id="60b93fd95f7b58dce3daffe8").first()
-p.showFaces()
+# p = Person.objects(id="60b93fd95f7b58dce3daffe8").first()
+# p.showFaces()
+
+for p in tqdm.tqdm(Person.objects):
+    p.saveFaces()
 
 # for p in Photo.objects:
 #     print(p.id)

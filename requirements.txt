@@ -7,3 +7,4 @@ face_recognition
 cmake
 pyforms-web
 git+https://github.com/Sean-McVeigh/mongoshapes.git
+tqdm

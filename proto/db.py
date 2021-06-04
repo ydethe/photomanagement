@@ -1,5 +1,6 @@
 import pickle
 import io
+import os
 from enum import unique
 from mongoengine import (
     connect,
@@ -31,6 +32,22 @@ class Face(Document):
 
 class Person(Document):
     faces = ListField(ReferenceField(Face))
+
+    def saveFaces(self):
+        os.makedirs("persons/%s" % self.id, exist_ok=True)
+        for k, face in enumerate(self.faces):
+            image = face.photo.photo.read()
+            img_with_red_box = Image.open(io.BytesIO(image))
+
+            # Creating a miniature of the person's face
+            mini = img_with_red_box.resize(
+                size=(face.xright - face.xleft, face.ydown - face.yup),
+                box=(face.xleft, face.yup, face.xright, face.ydown),
+            )
+            _, fn = os.path.split(face.photo.photo.filename)
+            bn, _ = os.path.splitext(fn)
+            bn = bn.replace(" ", "_")
+            mini.save("persons/%s/%s_face%i.jpg" % (self.id, bn, k))
 
     def showFaces(self):
         for k, face in enumerate(self.faces):
