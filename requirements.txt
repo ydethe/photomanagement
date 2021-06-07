@@ -8,4 +8,3 @@ cmake
 pyforms-web
 git+https://github.com/Sean-McVeigh/mongoshapes.git
 tqdm
-PyQt5

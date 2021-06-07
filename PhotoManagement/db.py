@@ -9,7 +9,7 @@ from mongoengine import (
     StringField,
     ListField,
     ReferenceField,
-    PointField,
+    BooleanField,
     ImageField,
     DateTimeField,
     BinaryField,
@@ -28,6 +28,7 @@ class Face(Document):
     yup = IntField()
     photo = ReferenceField("Photo")
     person = ReferenceField("Person", required=True)
+    manually_tagged=BooleanField(default=False)
 
 
 class Person(Document):

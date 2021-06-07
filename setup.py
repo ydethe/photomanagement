@@ -22,6 +22,12 @@ with codecs.open(
     encoding="utf-8",
 ) as f:
     req = f.read().strip().split("\n")
+    dep = [x for x in req if x.startswith("git") or "https://" in x or "ssh://" in x]
+    req = [
+        x
+        for x in req
+        if not x.startswith("git") and not "https://" in x and not "ssh://" in x
+    ]
 
 
 class BuildSphinxCommand(distutils.cmd.Command):

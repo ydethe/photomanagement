@@ -9,8 +9,8 @@ from PIL import Image, ImageDraw
 from mongoengine import connect
 import mongoshapes as ms
 
-from db import Face, Photo, Person
-from Image import read_metadata
+from PhotoManagement.db import Face, Photo, Person
+from PhotoManagement.Image import read_metadata
 
 
 def import_image(pth: str) -> Photo:
