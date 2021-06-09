@@ -8,12 +8,9 @@ dependencies:
   - numpy=1.20.2
   - pillow=8.2.0
   - pip=21.1.1
-  - python=3.8.10
+  - python=3.9.4
   - scipy=1.6.3
   - setuptools=52.0.0
-  - tqdm=4.59.0
-  - click=8.0.1
   - wheel=0.36.2
-  - dlib=19.22.0
   - pip:
     - -r file:requirements.txt

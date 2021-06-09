@@ -27,16 +27,13 @@ class Face(Document):
     ydown = IntField()
     yup = IntField()
     photo = ReferenceField("Photo")
-    person = ReferenceField("Person", required=True)
+    person = ReferenceField("Person")
     manually_tagged = BooleanField(default=False)
 
-
-class Person(Document):
-    faces = ListField(ReferenceField(Face))
-
-    def saveFaces(self):
-        os.makedirs("persons/%s" % self.id, exist_ok=True)
-        for k, face in enumerate(self.faces):
+    @classmethod
+    def exportAll(cls, dst_dir="faces"):
+        os.makedirs(dst_dir, exist_ok=True)
+        for face in cls.objects():
             image = face.photo.photo.read()
             img_with_red_box = Image.open(io.BytesIO(image))
 
@@ -48,7 +45,41 @@ class Person(Document):
             _, fn = os.path.split(face.photo.photo.filename)
             bn, _ = os.path.splitext(fn)
             bn = bn.replace(" ", "_")
-            mini.save("persons/%s/%s_face%i.jpg" % (self.id, bn, k))
+            mini.save("%s/%s.jpg" % (dst_dir, face.id))
+
+    def affectToPersonAndSaveAll(self, person):
+        person.faces.append(self)
+        person.save()
+
+        if not self.person is None:
+            self.person.faces.remove(self)
+            self.person.save()
+
+        self.person = person
+        self.manually_tagged = True
+        self.save()
+
+
+class Person(Document):
+    nom = StringField()
+    faces = ListField(ReferenceField(Face))
+
+    def saveFaces(self):
+        os.makedirs("persons/%s_%s" % (self.nom, self.id), exist_ok=True)
+        for k, face in enumerate(self.faces):
+            image = face.photo.photo.read()
+            print(face.photo.id)
+            img_with_red_box = Image.open(io.BytesIO(image))
+
+            # Creating a miniature of the person's face
+            mini = img_with_red_box.resize(
+                size=(face.xright - face.xleft, face.ydown - face.yup),
+                box=(face.xleft, face.yup, face.xright, face.ydown),
+            )
+            _, fn = os.path.split(face.photo.photo.filename)
+            bn, _ = os.path.splitext(fn)
+            bn = bn.replace(" ", "_")
+            mini.save("persons/%s_%s/%s_face%i.jpg" % (self.nom, self.id, bn, k))
 
     def showFaces(self):
         for k, face in enumerate(self.faces):
@@ -80,6 +111,13 @@ class Photo(Document):
     date_taken = DateTimeField(required=True)
     faces = ListField(ReferenceField(Face))
     album = ReferenceField("Album")
+
+    @classmethod
+    def showPhoto(cls, photo_id):
+        photo = cls.objects(id=photo_id).first()
+        image = photo.photo.read()
+        img = Image.open(io.BytesIO(image))
+        img.show()
 
     def showFaces(self):
         image = self.photo.read()

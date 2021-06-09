@@ -132,8 +132,12 @@ connect("photo_mgt")
 #         if ext.lower() in [".png", ".jpg", ".jpeg"]:
 #             photo = import_image(pth)
 
-# p = Person.objects(id="60b93fd95f7b58dce3daffe8").first()
-# p.showFaces()
+p = Person.objects(nom="Camille").first()
+p.showFaces()
+exit(0)
+
+# Photo.showPhoto("60b940435f7b58dce3db0186")
+# exit(0)
 
 for p in tqdm.tqdm(Person.objects):
     p.saveFaces()
