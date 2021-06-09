@@ -1,3 +1,5 @@
+# conda env export --no-builds > environment.yml
+# conda env create -f environment.yml 
 name: pmg
 channels:
   - conda-forge

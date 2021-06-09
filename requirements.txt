@@ -1,4 +1,4 @@
-hachoir=3.1.1
-mongoengine=0.23.1
+hachoir==3.1.1
+mongoengine==0.23.1
 git+https://github.com/Sean-McVeigh/mongoshapes.git
-deepface=0.0.53
+deepface==0.0.53
