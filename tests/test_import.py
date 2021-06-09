@@ -1,8 +1,10 @@
 import pickle
 import hashlib
 import os
+import logging
+from re import M
 
-import tqdm
+from tqdm import tqdm
 import numpy as np
 import face_recognition
 from PIL import Image, ImageDraw
@@ -13,9 +15,11 @@ from PhotoManagement.db import Face, Photo, Person
 from PhotoManagement.Image import read_metadata
 
 
-def import_image(pth: str) -> Photo:
-    print(72 * "=")
-    print(pth)
+def import_image(pth: str, match_persons=True) -> Photo:
+    log = logging.getLogger("photomgt_logger")
+
+    log.info(72 * "=")
+    log.info(pth)
     metadata = read_metadata(pth)
     gps_info = metadata.get("GPSInfo", {})
     lat = gps_info.get("Latitude", None)
@@ -24,7 +28,7 @@ def import_image(pth: str) -> Photo:
     if not lon is None and not lat is None:
         place_taken = ms.Point([lon, lat, alt])
     else:
-        print("No location data")
+        log.warning("No location data")
         place_taken = None
     date_taken = metadata.get("DateTimeOriginal", None)
     # place_taken = {"type": "Point", "coordinates": [lon, lat,alt]}
@@ -35,10 +39,12 @@ def import_image(pth: str) -> Photo:
         h = hashlib.sha224(buf).hexdigest()
 
     if date_taken is None:
-        photo = Photo(hash=h)
-        print("No date and time data")
+        photo = Photo(hash=h, original_path=pth)
+        log.warning("No date and time data")
     else:
-        photo = Photo(hash=h, date_taken=metadata["DateTimeOriginal"])
+        photo = Photo(
+            hash=h, original_path=pth, date_taken=metadata["DateTimeOriginal"]
+        )
     if not place_taken is None:
         photo.place_taken = place_taken
     photo.photo.replace(open(pth, "rb"), filename=pth)
@@ -57,8 +63,8 @@ def import_image(pth: str) -> Photo:
         img = img.resize(
             size=(200, 200), resample=Image.HAMMING, box=((w - h) // 2, 0, h, h)
         )
-    img.save("%s.jpg" % photo.id)
-    my_mini = open("%s.jpg" % photo.id, "rb")
+    img.save("miniatures/%s.jpg" % photo.id)
+    my_mini = open("miniatures/%s.jpg" % photo.id, "rb")
     photo.miniature.replace(my_mini, filename=pth)
     photo.save()
 
@@ -81,33 +87,34 @@ def import_image(pth: str) -> Photo:
             ydown=ydown,
             photo=photo,
         )
-        # face.save()
+        face.save()
         lfaces.append(face)
 
-        Jmin = 0
-        matching_person = None
-        for p in Person.objects:
-            test_blobs = [pickle.loads(x.blob) for x in p.faces]
-            results = face_recognition.face_distance(test_blobs, blob)
-            J = np.sum(results ** 2)
-            if matching_person is None or J < Jmin:
-                Jmin = J
-                matching_person = p
+        if match_persons:
+            Jmin = 0
+            matching_person = None
+            for p in Person.objects:
+                test_blobs = [pickle.loads(x.blob) for x in p.faces]
+                results = face_recognition.face_distance(test_blobs, blob)
+                J = np.sum(results ** 2)
+                if matching_person is None or J < Jmin:
+                    Jmin = J
+                    matching_person = p
 
-        if matching_person is None or Jmin > 0.5:
-            matching_person = Person()
-            print("Creation Person", Jmin)
-            matching_person.save()
-            face.person = matching_person
-            face.save()
-            matching_person.faces = [face]
-            matching_person.save()
-        else:
-            print("Found person", Jmin)
-            face.person = matching_person
-            face.save()
-            matching_person.faces.append(face)
-            matching_person.save()
+            if matching_person is None or Jmin > 0.5:
+                log.info("No Person found %.4f" % Jmin)
+                # matching_person = Person()
+                # matching_person.save()
+                # face.person = matching_person
+                # face.save()
+                # matching_person.faces = [face]
+                # matching_person.save()
+            else:
+                log.info("Found person (%s):\t%.4f" % (matching_person.nom, Jmin))
+                face.person = matching_person
+                face.save()
+                matching_person.faces.append(face)
+                matching_person.save()
 
     photo.faces = lfaces
     photo.save()
@@ -118,29 +125,31 @@ def import_image(pth: str) -> Photo:
 # mongod --config /opt/homebrew/etc/mongod.conf --fork
 connect("photo_mgt")
 
-# pth = "Mars2020/Photo 20-03-13 17-53-56 0565.jpg"
-# pth = "Mars2020/Photo 20-03-14 10-58-42 0572.jpg"
-# pth = "Mars2020/Photo 20-03-14 10-58-45 0573.jpg"
-# pth = "Mars2020/Photo 20-03-13 17-53-52 0558.jpg"
+# pth = "tests/Mars2020/Photo 20-03-13 17-53-56 0565.jpg"
+# pth = "tests/Mars2020/Photo 20-03-14 10-58-42 0572.jpg"
+# pth = "tests/Mars2020/Photo 20-03-14 10-58-45 0573.jpg"
+# pth = "tests/Mars2020/Photo 20-03-13 17-53-52 0558.jpg"
 # photo = import_image(pth)
 # photo.showFaces()
 
-# for (root, dirs, files) in os.walk("Mars2020"):
-#     for f in files:
-#         pth = os.path.join(root, f)
-#         _, ext = os.path.splitext(pth)
-#         if ext.lower() in [".png", ".jpg", ".jpeg"]:
-#             photo = import_image(pth)
+os.makedirs("miniatures", exist_ok=True)
+# for (root, dirs, files) in os.walk("tests/Mai2020"):
+for (root, dirs, files) in tqdm(os.walk("tests/Mars2020")):
+    for f in tqdm(files):
+        pth = os.path.join(root, f)
+        _, ext = os.path.splitext(pth)
+        if ext.lower() in [".png", ".jpg", ".jpeg"]:
+            photo = import_image(pth, match_persons=False)
 
-p = Person.objects(nom="Camille").first()
-p.showFaces()
-exit(0)
-
-# Photo.showPhoto("60b940435f7b58dce3db0186")
+# p = Person.objects(nom="Camille").first()
+# p.showFaces()
 # exit(0)
 
-for p in tqdm.tqdm(Person.objects):
-    p.saveFaces()
+# Photo.showPhoto("60c0e4b3702259dfc562911d")
+# exit(0)
+
+# for p in tqdm.tqdm(Person.objects):
+#     p.saveFaces()
 
 # for p in Photo.objects:
 #     print(p.id)

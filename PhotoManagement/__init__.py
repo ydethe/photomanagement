@@ -27,4 +27,12 @@ formatter = LogFormatter()
 # sur la console
 stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
-logger.addHandler(stream_handler)
+
+file_handler = logging.FileHandler(
+    "photomgt.log", mode="w", encoding="utf-8", delay=False
+)
+file_handler.setFormatter(formatter)
+
+logger.handlers = []
+# logger.addHandler(stream_handler)
+logger.addHandler(file_handler)

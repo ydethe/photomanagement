@@ -24,6 +24,8 @@ def get_decimal_coordinates(info):
 
     if "Latitude" in info and "Longitude" in info:
         return [info["Latitude"], info["Longitude"]]
+    else:
+        return None, None
 
 
 def read_metadata(pth):
@@ -32,15 +34,24 @@ def read_metadata(pth):
     _, fn = os.path.split(pth)
     bn, _ = os.path.splitext(fn)
 
-    # with open("md/metadata_%s.txt" % fn, "w") as f:
-    #     f.write("%s\n" % pth)
-    #     f.write(str(exif_data))
-    # im.close()
+    os.makedirs("md", exist_ok=True)
+    f_md = open("md/metadata_%s.txt" % fn, "w")
+    f_md.write("%s\n" % pth)
+    f_md.write("%s\n" % exif_data)
+    im.close()
 
-    if exif_data is None or not "DateTimeOriginal" in exif_data.keys():
+    if exif_data is None:
+        exif_data = {}
+
+    if "DateTimeOriginal" in exif_data.keys():
+        date_time_str = exif_data["DateTimeOriginal"]
+        # date_time_str='2020:04:02 12:58:12'
+        dt = datetime.strptime(date_time_str, "%Y:%m:%d %H:%M:%S")
+        exif_data["DateTimeOriginal"] = dt
+    else:
         # bn="Photo 20-03-13 17-53-52 0558"
         dt = datetime.strptime(bn, "Photo %y-%m-%d %H-%M-%S %f")
-        return {"DateTimeOriginal": dt}
+        exif_data["DateTimeOriginal"] = dt
 
     lkeys = list(exif_data.keys())
     for key in lkeys:
@@ -49,23 +60,23 @@ def read_metadata(pth):
 
     if "GPSInfo" in exif_data:
         lkeys = list(exif_data["GPSInfo"].keys())
-        for key in lkeys:
-            name = GPSTAGS.get(key, key)
-            exif_data["GPSInfo"][name] = exif_data["GPSInfo"].pop(key)
+    elif "34853" in exif_data:
+        lkeys = list(exif_data["34853"].keys())
+        exif_data["GPSInfo"] = {}
+    else:
+        lkeys = []
+        exif_data["GPSInfo"] = {}
 
-        lat, lon = get_decimal_coordinates(exif_data["GPSInfo"])
-        exif_data["GPSInfo"]["Latitude"] = lat
-        exif_data["GPSInfo"]["Longitude"] = lon
+    for key in lkeys:
+        name = GPSTAGS.get(key, key)
+        exif_data["GPSInfo"][name] = exif_data["GPSInfo"].pop(key)
 
-    # f = open("log_pil.txt", "w")
-    # f.write(str(exif_data))
-    # f.close()
+    lat, lon = get_decimal_coordinates(exif_data["GPSInfo"])
+    exif_data["GPSInfo"]["Latitude"] = lat
+    exif_data["GPSInfo"]["Longitude"] = lon
 
-    # '2020:04:02 12:58:12'
-    date_time_str = exif_data["DateTimeOriginal"]
-    exif_data["DateTimeOriginal"] = datetime.strptime(
-        date_time_str, "%Y:%m:%d %H:%M:%S"
-    )
+    f_md.write("%s\n" % exif_data)
+    f_md.close()
 
     return exif_data
 

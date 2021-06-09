@@ -18,6 +18,7 @@ import mongoshapes as ms
 from PIL import Image, ImageDraw
 import face_recognition
 import numpy as np
+from pkg_resources import require
 
 
 class Face(Document):
@@ -26,7 +27,7 @@ class Face(Document):
     xright = IntField()
     ydown = IntField()
     yup = IntField()
-    photo = ReferenceField("Photo")
+    photo = ReferenceField("Photo", required=True)
     person = ReferenceField("Person")
     manually_tagged = BooleanField(default=False)
 
@@ -105,7 +106,8 @@ class Person(Document):
 
 class Photo(Document):
     photo = ImageField()
-    hash = StringField(unique=True)
+    original_path = StringField(required=True)
+    hash = StringField(unique=True, required=True)
     place_taken = ms.PointField()
     miniature = ImageField(thumbnail_size=(200, 200))
     date_taken = DateTimeField(required=True)
