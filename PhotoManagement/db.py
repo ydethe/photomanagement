@@ -113,15 +113,16 @@ class Photo(Document):
         image = photo.photo.read()
         img = Image.open(io.BytesIO(image))
 
-        # Drawing a red rectangle on the photo to locate the person
-        img_with_red_box_draw = ImageDraw.Draw(img)
-        for face in photo.faces:
-            img_with_red_box_draw.rectangle(
-                [(face.xleft, face.yup), (face.xright, face.ydown)],
-                outline="red",
-                width=3,
-            )
-        
+        if show_faces:
+            # Drawing a red rectangle on the photo to locate the person
+            img_with_red_box_draw = ImageDraw.Draw(img)
+            for face in photo.faces:
+                img_with_red_box_draw.rectangle(
+                    [(face.xleft, face.yup), (face.xright, face.ydown)],
+                    outline="red",
+                    width=3,
+                )
+
         img.show()
 
     def showFaces(self):

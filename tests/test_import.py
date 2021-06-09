@@ -12,7 +12,7 @@ connect("photo_mgt")
 
 os.makedirs("miniatures", exist_ok=True)
 for (root, dirs, files) in tqdm(os.walk("tests/Mai2020")):
-# for (root, dirs, files) in tqdm(os.walk("tests/Mars2020")):
+    # for (root, dirs, files) in tqdm(os.walk("tests/Mars2020")):
     for f in tqdm(files):
         pth = os.path.join(root, f)
         _, ext = os.path.splitext(pth)
