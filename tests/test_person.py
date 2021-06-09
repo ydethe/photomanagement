@@ -24,7 +24,7 @@ def clearLinkPersonFace():
 # Face.exportAll()
 # exit(0)
 
-clearLinkPersonFace()
+# clearLinkPersonFace()
 root0 = "faces"
 
 for root, dirs, files in os.walk(root0):

@@ -15,7 +15,7 @@ Types of Contributions
 Report Bugs
 ~~~~~~~~~~~
 
-Report bugs at https://github.com/ydethe/SystemControl/issues.
+Report bugs at https://github.com/ydethe/PhotoManagement/issues.
 
 If you are reporting a bug, please include:
 
@@ -38,14 +38,14 @@ and "help wanted" is open to whoever wants to implement it.
 Write Documentation
 ~~~~~~~~~~~~~~~~~~~
 
-SystemControl could always use more documentation, whether as part of the
-official SystemControl docs, in docstrings, or even on the web in blog posts,
+PhotoManagement could always use more documentation, whether as part of the
+official PhotoManagement docs, in docstrings, or even on the web in blog posts,
 articles, and such.
 
 Submit Feedback
 ~~~~~~~~~~~~~~~
 
-The best way to send feedback is to file an issue at https://github.com/ydethe/SystemControl/issues.
+The best way to send feedback is to file an issue at https://github.com/ydethe/PhotoManagement/issues.
 
 If you are proposing a feature:
 
@@ -57,17 +57,17 @@ If you are proposing a feature:
 Get Started!
 ------------
 
-Ready to contribute? Here's how to set up `SystemControl` for local development.
+Ready to contribute? Here's how to set up `PhotoManagement` for local development.
 
-1. Fork the `SystemControl` repo on GitHub.
+1. Fork the `PhotoManagement` repo on GitHub.
 2. Clone your fork locally::
 
-    $ git clone git@github.com:your_name_here/SystemControl.git
+    $ git clone git@github.com:your_name_here/PhotoManagement.git
 
 3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
 
-    $ mkvirtualenv SystemControl
-    $ cd SystemControl/
+    $ mkvirtualenv PhotoManagement
+    $ cd PhotoManagement/
     $ python setup.py develop
 
 4. Create a branch for local development::
@@ -79,7 +79,7 @@ Ready to contribute? Here's how to set up `SystemControl` for local development.
 5. When you're done making changes, check that your changes pass flake8 and the
    tests, including testing other Python versions with tox::
 
-    $ flake8 SystemControl tests
+    $ flake8 PhotoManagement tests
     $ python setup.py test or pytest
     $ tox
 

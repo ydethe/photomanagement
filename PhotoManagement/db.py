@@ -36,10 +36,10 @@ class Face(Document):
         os.makedirs(dst_dir, exist_ok=True)
         for face in cls.objects():
             image = face.photo.photo.read()
-            img_with_red_box = Image.open(io.BytesIO(image))
+            img = Image.open(io.BytesIO(image))
 
             # Creating a miniature of the person's face
-            mini = img_with_red_box.resize(
+            mini = img.resize(
                 size=(face.xright - face.xleft, face.ydown - face.yup),
                 box=(face.xleft, face.yup, face.xright, face.ydown),
             )
@@ -70,10 +70,10 @@ class Person(Document):
         for k, face in enumerate(self.faces):
             image = face.photo.photo.read()
             print(face.photo.id)
-            img_with_red_box = Image.open(io.BytesIO(image))
+            img = Image.open(io.BytesIO(image))
 
             # Creating a miniature of the person's face
-            mini = img_with_red_box.resize(
+            mini = img.resize(
                 size=(face.xright - face.xleft, face.ydown - face.yup),
                 box=(face.xleft, face.yup, face.xright, face.ydown),
             )
@@ -85,23 +85,16 @@ class Person(Document):
     def showFaces(self):
         for k, face in enumerate(self.faces):
             image = face.photo.photo.read()
-            img_with_red_box = Image.open(io.BytesIO(image))
-
-            # Creating a miniature of the person's face
-            mini = img_with_red_box.resize(
-                size=(face.xright - face.xleft, face.ydown - face.yup),
-                box=(face.xleft, face.yup, face.xright, face.ydown),
-            )
-            mini.save("persons/%s_%i.jpg" % (self.id, k))
+            img = Image.open(io.BytesIO(image))
 
             # Drawing a red rectangle on the photo to locate the person
-            img_with_red_box_draw = ImageDraw.Draw(img_with_red_box)
+            img_with_red_box_draw = ImageDraw.Draw(img)
             img_with_red_box_draw.rectangle(
                 [(face.xleft, face.yup), (face.xright, face.ydown)],
                 outline="red",
                 width=3,
             )
-            img_with_red_box.show()
+            img.show()
 
 
 class Photo(Document):
@@ -115,10 +108,20 @@ class Photo(Document):
     album = ReferenceField("Album")
 
     @classmethod
-    def showPhoto(cls, photo_id):
+    def showPhoto(cls, photo_id, show_faces=False):
         photo = cls.objects(id=photo_id).first()
         image = photo.photo.read()
         img = Image.open(io.BytesIO(image))
+
+        # Drawing a red rectangle on the photo to locate the person
+        img_with_red_box_draw = ImageDraw.Draw(img)
+        for face in photo.faces:
+            img_with_red_box_draw.rectangle(
+                [(face.xleft, face.yup), (face.xright, face.ydown)],
+                outline="red",
+                width=3,
+            )
+        
         img.show()
 
     def showFaces(self):
@@ -126,8 +129,8 @@ class Photo(Document):
 
         img = Image.open(io.BytesIO(image))
         # img = Image.fromarray(image, "RGB")
-        img_with_red_box = img.copy()
-        img_with_red_box_draw = ImageDraw.Draw(img_with_red_box)
+        img = img.copy()
+        img_with_red_box_draw = ImageDraw.Draw(img)
 
         for face in self.faces:
             img_with_red_box_draw.rectangle(
@@ -136,7 +139,7 @@ class Photo(Document):
                 width=3,
             )
 
-        img_with_red_box.show()
+        img.show()
 
 
 class Album(Document):
