@@ -1,10 +1,4 @@
-numpy>=1.11.1
-tqdm>=4.42.1
-Pillow>=3.0.0
-hachoir>=3.1.1
-mongoengine
-face_recognition
-cmake
-pyforms-web
+hachoir=3.1.1
+mongoengine=0.23.1
 git+https://github.com/Sean-McVeigh/mongoshapes.git
-tqdm
+deepface=0.0.53

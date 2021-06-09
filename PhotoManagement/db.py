@@ -28,7 +28,7 @@ class Face(Document):
     yup = IntField()
     photo = ReferenceField("Photo")
     person = ReferenceField("Person", required=True)
-    manually_tagged=BooleanField(default=False)
+    manually_tagged = BooleanField(default=False)
 
 
 class Person(Document):

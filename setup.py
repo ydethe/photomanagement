@@ -9,25 +9,28 @@ import shutil
 import pathlib
 
 
+def requirements():
+    with codecs.open(
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "requirements.txt"),
+        mode="r",
+        encoding="utf-8",
+    ) as f:
+        req = f.read().strip().split("\n")
+        dep = [
+            x for x in req if x.startswith("git") or "https://" in x or "ssh://" in x
+        ]
+        req = [
+            x
+            for x in req
+            if not x.startswith("git") and not "https://" in x and not "ssh://" in x
+        ]
+    return req, dep
+
+
 conf_pth = os.path.join(os.path.dirname(os.path.abspath(__file__)), "setup.cfg")
 conf_dict = read_configuration(conf_pth)
 
-opt = conf_dict["options"]
-if not "install_requires" in opt.keys():
-    opt["install_requires"] = []
-
-with codecs.open(
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), "requirements.txt"),
-    mode="r",
-    encoding="utf-8",
-) as f:
-    req = f.read().strip().split("\n")
-    dep = [x for x in req if x.startswith("git") or "https://" in x or "ssh://" in x]
-    req = [
-        x
-        for x in req
-        if not x.startswith("git") and not "https://" in x and not "ssh://" in x
-    ]
+req, dep = requirements()
 
 
 class BuildSphinxCommand(distutils.cmd.Command):
