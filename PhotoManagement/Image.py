@@ -111,6 +111,13 @@ def import_image(pth: str, match_persons=True) -> Photo:
         buf = afile.read()
         h = hashlib.sha224(buf).hexdigest()
 
+    if Photo.objects(hash=h).count() > 0:
+        dup = Photo.objects(hash=h).first()
+        log.warning("Duplicate photo :")
+        log.warning("s" % pth)
+        log.warning("s" % dup.original_path)
+        return
+
     if date_taken is None:
         photo = Photo(hash=h, original_path=pth)
         log.warning("No date and time data")
