@@ -4,6 +4,7 @@ import pickle
 import hashlib
 import logging
 from datetime import datetime
+from typing import Tuple
 
 import numpy as np
 import mongoshapes as ms
@@ -16,7 +17,7 @@ from hachoir.metadata import extractMetadata
 from PhotoManagement.db import Face, Photo, Person
 
 
-def get_decimal_coordinates(info):
+def get_decimal_coordinates(info: dict) -> Tuple[float]:
     for key in ["Latitude", "Longitude"]:
         if "GPS" + key in info and "GPS" + key + "Ref" in info:
             e = info["GPS" + key]
@@ -35,7 +36,29 @@ def get_decimal_coordinates(info):
         return None, None
 
 
-def read_metadata(pth):
+def getAddress(lat: float, lon: float) -> dict:
+    """
+
+    >>> getAddress(43.60467117912294,1.4415632156260192)
+    {'city': 'Toulouse',
+     'country': 'France',
+     'country_code': 'fr',
+     'county': 'Haute-Garonne',
+     'municipality': 'Toulouse',
+     'neighbourhood': 'Place Occitane',
+     'postcode': '31000',
+     'road': 'Rue Jean-Antoine Romiguières',
+     'shop': 'Jean Claude Aubry Romiguières',
+     'state': 'Occitanie',
+     'suburb': 'Toulouse Centre'}
+
+    """
+    g = geocoder.osm([lat, lon], method="reverse")
+    addr = g.geojson["features"][0]["properties"]["raw"]["address"]
+    return addr
+
+
+def read_metadata(pth: str) -> dict:
     im = Image.open(pth)
     exif_data = im._getexif()
     _, fn = os.path.split(pth)
@@ -58,9 +81,11 @@ def read_metadata(pth):
     if "DateTimeOriginal" in exif_data.keys():
         date_time_str = exif_data["DateTimeOriginal"]
         # date_time_str='2020:04:02 12:58:12'
+        exif_data["InferredDateTime"] = True
         dt = datetime.strptime(date_time_str, "%Y:%m:%d %H:%M:%S")
     else:
         # bn="Photo 20-03-13 17-53-52 0558"
+        exif_data["InferredDateTime"] = False
         dt = datetime.strptime(bn, "Photo %y-%m-%d %H-%M-%S %f")
 
     exif_data["DateTimeOriginal"] = dt
@@ -103,8 +128,9 @@ def import_image(pth: str, match_persons=True) -> Photo:
     else:
         log.warning("No location data")
         place_taken = None
+    inferred_dt = metadata["InferredDateTime"]
     date_taken = metadata.get("DateTimeOriginal", None)
-    # place_taken = {"type": "Point", "coordinates": [lon, lat,alt]}
+    # place_taken = {"type": "Point", "coordinates": [lon, lat]}
     image = face_recognition.load_image_file(pth)
 
     with open(pth, "rb") as afile:
@@ -119,11 +145,11 @@ def import_image(pth: str, match_persons=True) -> Photo:
         return
 
     if date_taken is None:
-        photo = Photo(hash=h, original_path=pth)
+        photo = Photo(hash=h, inferred_date=inferred_dt, original_path=pth)
         log.warning("No date and time data")
     else:
         photo = Photo(
-            hash=h, original_path=pth, date_taken=metadata["DateTimeOriginal"]
+            hash=h, inferred_date=inferred_dt, original_path=pth, date_taken=date_taken
         )
     if not place_taken is None:
         photo.place_taken = place_taken
