@@ -68,6 +68,8 @@ def getAddress(lat: float, lon: float, alt: float) -> Address:
         ville = dat["city"]
     elif "village" in dat.keys():
         ville = dat["village"]
+    elif "town" in dat.keys():
+        ville = dat["town"]
 
     try:
         addr = Address(
