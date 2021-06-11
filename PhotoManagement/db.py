@@ -23,7 +23,8 @@ from pkg_resources import require
 
 
 class Face(Document):
-    blob = BinaryField()
+    hash = StringField(unique=True, required=True)
+    blob = ListField(FloatField())
     xleft = IntField()
     xright = IntField()
     ydown = IntField()

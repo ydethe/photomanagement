@@ -1,6 +1,6 @@
 from datetime import datetime
 import os
-import pickle
+import io
 import hashlib
 import logging
 from datetime import datetime
@@ -174,6 +174,9 @@ def read_metadata(pth: str) -> dict:
 
 
 def import_image(pth: str, match_persons=True) -> Photo:
+    face_dst_dir = "faces"
+    os.makedirs(face_dst_dir, exist_ok=True)
+
     log = logging.getLogger("photomgt_logger")
 
     log.info(72 * "=")
@@ -233,11 +236,11 @@ def import_image(pth: str, match_persons=True) -> Photo:
     img = Image.fromarray(image, "RGB")
     w, h = img.size
     if w < h:
-        img = img.resize(
+        mini = img.resize(
             size=(200, 200), resample=Image.HAMMING, box=(0, (h - w) // 2, w, w)
         )
     else:
-        img = img.resize(
+        mini = img.resize(
             size=(200, 200), resample=Image.HAMMING, box=((w - h) // 2, 0, h, h)
         )
     # angle – In degrees counter clockwise
@@ -251,8 +254,8 @@ def import_image(pth: str, match_persons=True) -> Photo:
         angle = 0
     if angle != 0:
         log.debug("Rotated a=%i deg, %s" % (angle, photo.id))
-        img = img.rotate(angle=angle)
-    img.save("miniatures/%s.jpg" % photo.id)
+        mini = mini.rotate(angle=angle)
+    mini.save("miniatures/%s.jpg" % photo.id)
     my_mini = open("miniatures/%s.jpg" % photo.id, "rb")
     photo.miniature.replace(my_mini, filename=pth)
     photo.save()
@@ -268,8 +271,20 @@ def import_image(pth: str, match_persons=True) -> Photo:
         # ((Upper left x, upper left y), (lower right x, lower right y)
         # (loc[3], loc[0]), (loc[1], loc[2])
         yup, xright, ydown, xleft = loc
+
+        # Creating a miniature of the person's face
+        face_img = img.resize(
+            size=(xright - xleft, ydown - yup), box=(xleft, yup, xright, ydown),
+        )
+        buf = io.BytesIO()
+        face_img.save(buf, format="JPEG")
+        buf = buf.getvalue()
+        h = hashlib.sha224(buf).hexdigest()
+        face_img.save("%s/%s.jpg" % (face_dst_dir, h))
+
         face = Face(
-            blob=pickle.dumps(blob),
+            blob=blob,
+            hash=h,
             xleft=xleft,
             yup=yup,
             xright=xright,
@@ -283,7 +298,7 @@ def import_image(pth: str, match_persons=True) -> Photo:
             Jmin = 0
             matching_person = None
             for p in Person.objects:
-                test_blobs = [pickle.loads(x.blob) for x in p.faces]
+                test_blobs = [x.blob for x in p.faces]
                 results = face_recognition.face_distance(test_blobs, blob)
                 J = np.sum(results ** 2)
                 if matching_person is None or J < Jmin:
