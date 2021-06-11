@@ -1,30 +1,24 @@
-import matplotlib.pyplot as plt
+import base64
 
-# Import, and set to log to the console.  (See the console which is running
-# Jupyter notebook for logging about HTTP requests.)
-import tilemapbase
+import folium
+from folium import IFrame
 from mongoengine import connect
 
 from PhotoManagement.db import Address
 
 
-tilemapbase.start_logging()
-
-# Don't need if you have run before; DB file will already exist.
-tilemapbase.init(create=True)
-
-# Use open street map
-t = tilemapbase.tiles.build_OSM()
-
 connect("photo_mgt")
 
 lat = []
 lon = []
+info = []
 lat_min = None
 lat_max = None
 lon_min = None
 lon_max = None
 for a in Address.objects():
+    photo = a.photos[0]
+
     lat.append(a.latitude)
     lon.append(a.longitude)
     if lat_min is None or a.latitude < lat_min:
@@ -36,25 +30,26 @@ for a in Address.objects():
     if lon_max is None or a.longitude > lon_max:
         lon_max = a.longitude
 
-degree_range = 0.003
-extent = tilemapbase.Extent.from_lonlat(
-    lon_min - degree_range,
-    lon_max + degree_range,
-    lat_min - degree_range,
-    lat_max + degree_range,
+    encoded = base64.b64encode(photo.miniature.read())
+    svg = """
+    <object data="data:image/jpg;base64,{}" width="{}" height="{} type="image/svg+xml">
+    </object>""".format
+    width, height, fat_wh = 78, 78, 1.25
+    iframe = IFrame(
+        svg(encoded.decode("UTF-8"), width, height),
+        width=width * fat_wh,
+        height=height * fat_wh,
+    )
+    popup = folium.Popup(iframe, max_width=2650)
+    info.append(popup)
+
+m = folium.Map(
+    location=[lat_min / 2 + lat_max / 2, lon_min / 2 + lon_max / 2],
+    zoom_start=12,
+    tiles="Stamen Terrain",
 )
-extent = extent.to_aspect(1.0)
 
-# On my desktop, DPI gets scaled by 0.75
-fig, ax = plt.subplots(figsize=(8, 8), dpi=100)
-ax.xaxis.set_visible(False)
-ax.yaxis.set_visible(False)
+for xlat, xlon, xinfo in zip(lat, lon, info):
+    folium.Marker([xlat, xlon], popup=xinfo).add_to(m)
 
-plotter = tilemapbase.Plotter(extent, t, width=600)
-plotter.plot(ax, t)
-
-xy = [tilemapbase.project(xlon, xlat) for (xlon, xlat) in zip(lon, lat)]
-x, y = zip(*xy)
-ax.scatter(x, y, marker=".", color="black", linewidth=20)
-
-plt.show()
+m.save("map.html")
