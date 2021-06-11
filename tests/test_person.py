@@ -56,10 +56,6 @@ for root, dirs, files in os.walk(root0):
 
     with open(os.path.join(root, "info.yml"), "r") as f:
         info = yaml.load(f, Loader=yaml.FullLoader)
-    info["mobile_perso"] = fmt_tel(info["mobile_perso"])
-    info["mobile_pro"] = fmt_tel(info["mobile_pro"])
-    info["fix_pro"] = fmt_tel(info["fix_pro"])
-    info["date_birth"] = datetime.strptime(info["date_birth"], "%d/%m/%Y")
 
     pers = Person(**info)
     pers.save()

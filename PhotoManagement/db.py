@@ -1,7 +1,6 @@
-from collections import defaultdict
 import io
 import os
-from enum import Enum
+from enum import Enum, unique
 
 from mongoengine import (
     connect,
@@ -19,9 +18,58 @@ from mongoengine import (
     EnumField,
     URLField,
 )
+from mongoengine import signals
 from PIL import Image, ImageDraw
+from pkg_resources import require
+
+from . import logger
+from .AirtableManager import AirtableManager
 
 
+def handler(event):
+    """Signal decorator to allow use of callback functions as class decorators."""
+
+    def decorator(fn):
+        def apply(cls):
+            event.connect(fn, sender=cls)
+            return cls
+
+        fn.apply = apply
+        return fn
+
+    return decorator
+
+
+@handler(signals.post_delete)
+def face_suppressed(sender, document):
+    logger.debug("Suppress face %s from photo %s" % (document.id, document.photo.id))
+    document.photo.faces.remove(document)
+    document.photo.save()
+
+    if not document.person is None:
+        logger.debug(
+            "Suppress face %s from person %s" % (document.id, document.person.id)
+        )
+        document.person.faces.remove(document)
+        document.person.save()
+
+
+@handler(signals.pre_delete)
+def photo_suppressed(sender, document):
+    logger.debug("Suppress photo %s (%s)" % (document.id, document.original_path))
+    for face in document.faces:
+        logger.debug("   Suppress face %s" % face.id)
+        face.delete()
+
+    if not document.place_taken is None:
+        document.place_taken.photos.remove(document)
+
+    if not document.album is None:
+        document.album.photos.remove(document)
+
+
+# https://stackoverflow.com/questions/62986950/deleting-a-reference-in-a-mongoengine-listfield
+@face_suppressed.apply
 class Face(Document):
     hash = StringField(unique=True, required=True)
     blob = ListField(FloatField())
@@ -75,52 +123,14 @@ class Face(Document):
         self.save()
 
 
-class Organisation(Document):
-    name = StringField()
-    persons = ListField(ReferenceField("Person"))
-
-
-class Title(Enum):
-    NONE = ""
-    FRERE = "Frère"
-    PERE = "Père"
-    SOEUR = "Soeur"
-
-
-class Particle(Enum):
-    NONE = ""
-    DE = "de"
-    DU = "du"
-    D = "d'"
-    DELA = "de la"
-    LE = "le"
-
-
-class Tag(Enum):
-    AMI = "Ami"
-    COLLEGUE = "Collègue"
-    FAMILLE = "Famille"
-
-
 class Person(Document):
-    address = ReferenceField("Address")
+    airtable_id = StringField(unique=True, required=True)
     faces = ListField(ReferenceField(Face))
-    linked_persons = ReferenceField("Person")
-    mobile_perso = StringField()
-    mobile_pro = StringField()
-    fix_pro = StringField()
-    notes = StringField()
-    organisation = ReferenceField("Organisation")
-    job_title = StringField()
-    title = EnumField(Title, default=Title.NONE)
-    firstname = StringField()
-    particle = EnumField(Particle, default=Particle.NONE)
-    familyname = StringField()
-    email_perso = EmailField()
-    email_pro = EmailField()
-    date_birth = DateTimeField()
-    linkedin = URLField()
-    tag = EnumField(Tag, default=Tag.AMI)
+
+    def getAirtableInformation(self):
+        am = AirtableManager(fic_cfg="etc/pmg.conf")
+        rec = am.get_rec_by_id("pers_table", self.airtable_id)
+        return rec["fields"]
 
     def saveFaces(self):
         os.makedirs("persons/%s_%s" % (self.nom, self.id), exist_ok=True)
@@ -168,6 +178,7 @@ class Address(Document):
     w3w = StringField(unique=True)
 
 
+@photo_suppressed.apply
 class Photo(Document):
     photo = ImageField()
     original_path = StringField(required=True)
