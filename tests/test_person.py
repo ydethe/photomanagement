@@ -1,7 +1,9 @@
 import os
+import yaml
 
 from mongoengine import connect
 
+from PhotoManagement import logger
 from PhotoManagement.db import Face, Photo, Person
 
 # from PhotoManagement.Image import read_metadata
@@ -13,7 +15,7 @@ connect("photo_mgt")
 def clearLinkPersonFace():
     for face in Face.objects():
         face.person = None
-        face.manually_tagged = True
+        face.manually_tagged = False
         face.save()
     Person.objects().delete()
 
@@ -32,13 +34,19 @@ for root, dirs, files in os.walk(root0):
     if nom == ".":
         continue
 
-    pers = Person(nom=nom)
+    with open(os.path.join(root, "info.yml"), "r") as f:
+        info = yaml.load(f, Loader=yaml.FullLoader)
+
+    pers = Person(**info)
     pers.save()
     print("Created %s... " % nom, end="")
 
     for f in files:
-        face_id, _ = os.path.splitext(f)
-        face = Face.objects(id=face_id).first()
+        face_hash, _ = os.path.splitext(f)
+        face = Face.objects(hash=face_hash).first()
+        if face is None:
+            logger.error(face_hash)
+            exit(1)
         face.affectToPersonAndSaveAll(pers)
 
     print("Done")

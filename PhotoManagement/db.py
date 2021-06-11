@@ -1,7 +1,8 @@
-import pickle
+from collections import defaultdict
 import io
 import os
-from enum import unique
+from enum import Enum
+
 from mongoengine import (
     connect,
     Document,
@@ -13,13 +14,12 @@ from mongoengine import (
     BooleanField,
     ImageField,
     DateTimeField,
-    BinaryField,
     DictField,
+    EmailField,
+    EnumField,
+    URLField,
 )
 from PIL import Image, ImageDraw
-import face_recognition
-import numpy as np
-from pkg_resources import require
 
 
 class Face(Document):
@@ -75,10 +75,52 @@ class Face(Document):
         self.save()
 
 
+class Organisation(Document):
+    name = StringField()
+    persons = ListField(ReferenceField("Person"))
+
+
+class Title(Enum):
+    NONE = ""
+    FRERE = "Frère"
+    PERE = "Père"
+    SOEUR = "Soeur"
+
+
+class Particle(Enum):
+    NONE = ""
+    DE = "de"
+    DU = "du"
+    D = "d'"
+    DELA = "de la"
+    LE = "le"
+
+
+class Tag(Enum):
+    AMI = "Ami"
+    COLLEGUE = "Collègue"
+    FAMILLE = "Famille"
+
+
 class Person(Document):
-    nom = StringField()
     address = ReferenceField("Address")
     faces = ListField(ReferenceField(Face))
+    linked_persons = ReferenceField("Person")
+    mobile_perso = StringField()
+    mobile_pro = StringField()
+    notes = StringField()
+    organisation = ReferenceField("Organisation")
+    job_title = StringField()
+    fix_pro = StringField()
+    title = EnumField(Title, default=Title.NONE)
+    firstname = StringField()
+    particle = EnumField(Particle, default=Particle.NONE)
+    familyname = StringField()
+    email_perso = EmailField()
+    email_pro = EmailField()
+    date_birth = DateTimeField()
+    linkedin = URLField()
+    tag = EnumField(Tag, default=Tag.AMI)
 
     def saveFaces(self):
         os.makedirs("persons/%s_%s" % (self.nom, self.id), exist_ok=True)
@@ -176,12 +218,3 @@ class Photo(Document):
 class Album(Document):
     titre = StringField()
     photos = ListField(ReferenceField(Photo))
-
-
-# b = np.zeros(128, dtype=np.float64).tobytes()
-# ross = Individu(airtable_id="rec7kGIwPvyF88c9B", blobs=[b])
-
-# ross.save()
-
-# for u in Individu.objects:
-#     print(u.airtable_id)
