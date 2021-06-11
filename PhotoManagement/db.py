@@ -14,6 +14,7 @@ from mongoengine import (
     ImageField,
     DateTimeField,
     BinaryField,
+    DictField,
 )
 from PIL import Image, ImageDraw
 import face_recognition
@@ -122,6 +123,7 @@ class Photo(Document):
     faces = ListField(ReferenceField(Face))
     album = ReferenceField("Album")
     inferred_date = BooleanField()
+    original_exif = DictField()
 
     @classmethod
     def showPhoto(cls, photo_id, show_faces=False):

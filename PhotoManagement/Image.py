@@ -10,12 +10,36 @@ import numpy as np
 import face_recognition
 from PIL import Image
 from PIL.ExifTags import GPSTAGS, TAGS
+from PIL.TiffImagePlugin import IFDRational
 from hachoir.parser import createParser
 from hachoir.metadata import extractMetadata
 import what3words
 import geocoder
 
 from PhotoManagement.db import Face, Photo, Person, Address
+
+
+def stringify_keys(md: dict) -> dict:
+    ret = {}
+    for k in md.keys():
+        sk = str(k)
+        if isinstance(md[k], dict):
+            sv = stringify_keys(md[k])
+        else:
+            sv = md[k]
+            if isinstance(sv, IFDRational):
+                sv = float(sv)
+            elif hasattr(sv, "__iter__"):
+                svl = []
+                for svk in sv:
+                    if isinstance(svk, IFDRational):
+                        svk = float(svk)
+                    svl.append(svk)
+                sv = svl
+
+        ret[sk] = sv
+
+    return ret
 
 
 def get_decimal_coordinates(info: dict) -> Tuple[float]:
@@ -109,18 +133,6 @@ def read_metadata(pth: str) -> dict:
         name = TAGS.get(key, key)
         exif_data[name] = exif_data.pop(key)
 
-    if "DateTimeOriginal" in exif_data.keys():
-        date_time_str = exif_data["DateTimeOriginal"]
-        # date_time_str='2020:04:02 12:58:12'
-        exif_data["InferredDateTime"] = True
-        dt = datetime.strptime(date_time_str, "%Y:%m:%d %H:%M:%S")
-    else:
-        # bn="Photo 20-03-13 17-53-52 0558"
-        exif_data["InferredDateTime"] = False
-        dt = datetime.strptime(bn, "Photo %y-%m-%d %H-%M-%S %f")
-
-    exif_data["DateTimeOriginal"] = dt
-
     if "GPSInfo" in exif_data:
         lkeys = list(exif_data["GPSInfo"].keys())
     elif "34853" in exif_data:
@@ -134,6 +146,23 @@ def read_metadata(pth: str) -> dict:
         name = GPSTAGS.get(key, key)
         exif_data["GPSInfo"][name] = exif_data["GPSInfo"].pop(key)
 
+    orig_exif = stringify_keys(exif_data)
+
+    if not "Orientation" in exif_data.keys():
+        exif_data["Orientation"] = 1
+
+    if "DateTimeOriginal" in exif_data.keys():
+        date_time_str = exif_data["DateTimeOriginal"]
+        # date_time_str='2020:04:02 12:58:12'
+        exif_data["InferredDateTime"] = True
+        dt = datetime.strptime(date_time_str, "%Y:%m:%d %H:%M:%S")
+    else:
+        # bn="Photo 20-03-13 17-53-52 0558"
+        exif_data["InferredDateTime"] = False
+        dt = datetime.strptime(bn, "Photo %y-%m-%d %H-%M-%S %f")
+
+    exif_data["DateTimeOriginal"] = dt
+
     lat, lon = get_decimal_coordinates(exif_data["GPSInfo"])
     exif_data["GPSInfo"]["Latitude"] = lat
     exif_data["GPSInfo"]["Longitude"] = lon
@@ -141,7 +170,7 @@ def read_metadata(pth: str) -> dict:
     f_md.write("%s\n" % exif_data)
     f_md.close()
 
-    return exif_data
+    return orig_exif, exif_data
 
 
 def import_image(pth: str, match_persons=True) -> Photo:
@@ -149,7 +178,7 @@ def import_image(pth: str, match_persons=True) -> Photo:
 
     log.info(72 * "=")
     log.info(pth)
-    metadata = read_metadata(pth)
+    orig_exif, metadata = read_metadata(pth)
     gps_info = metadata.get("GPSInfo", {})
     lat = gps_info.get("Latitude", None)
     lon = gps_info.get("Longitude", None)
@@ -175,11 +204,20 @@ def import_image(pth: str, match_persons=True) -> Photo:
         return
 
     if date_taken is None:
-        photo = Photo(hash=h, inferred_date=inferred_dt, original_path=pth)
+        photo = Photo(
+            hash=h,
+            original_exif=orig_exif,
+            inferred_date=inferred_dt,
+            original_path=pth,
+        )
         log.warning("No date and time data")
     else:
         photo = Photo(
-            hash=h, inferred_date=inferred_dt, original_path=pth, date_taken=date_taken
+            hash=h,
+            original_exif=orig_exif,
+            inferred_date=inferred_dt,
+            original_path=pth,
+            date_taken=date_taken,
         )
     if not place_taken is None:
         photo.save()
@@ -202,6 +240,18 @@ def import_image(pth: str, match_persons=True) -> Photo:
         img = img.resize(
             size=(200, 200), resample=Image.HAMMING, box=((w - h) // 2, 0, h, h)
         )
+    # angle – In degrees counter clockwise
+    if metadata["Orientation"] == 8:
+        angle = 90
+    elif metadata["Orientation"] == 3:
+        angle = 180
+    elif metadata["Orientation"] == 6:
+        angle = -90
+    else:
+        angle = 0
+    if angle != 0:
+        log.debug("Rotated a=%i deg, %s" % (angle, photo.id))
+        img = img.rotate(angle=angle)
     img.save("miniatures/%s.jpg" % photo.id)
     my_mini = open("miniatures/%s.jpg" % photo.id, "rb")
     photo.miniature.replace(my_mini, filename=pth)
