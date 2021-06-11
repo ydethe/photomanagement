@@ -10,3 +10,5 @@ click==8.0.1
 geocoder==1.38.1
 what3words==3.1.1
 folium==0.12.1
+airtable-python-wrapper==0.15.2
+phonenumbers==8.12.24
