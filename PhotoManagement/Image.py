@@ -113,17 +113,18 @@ def getAddress(lat: float, lon: float, alt: float) -> Address:
     return addr
 
 
-def read_metadata(pth: str) -> dict:
+def read_metadata(pth: str, write_md: bool = False) -> dict:
     im = Image.open(pth)
     exif_data = im._getexif()
     _, fn = os.path.split(pth)
     bn, _ = os.path.splitext(fn)
 
-    os.makedirs("md", exist_ok=True)
-    f_md = open("md/metadata_%s.txt" % fn, "w")
-    f_md.write("%s\n" % pth)
-    f_md.write("%s\n" % exif_data)
-    im.close()
+    if write_md:
+        os.makedirs("md", exist_ok=True)
+        f_md = open("md/metadata_%s.txt" % fn, "w")
+        f_md.write("%s\n" % pth)
+        f_md.write("%s\n" % exif_data)
+        im.close()
 
     if exif_data is None:
         exif_data = {}
@@ -167,8 +168,9 @@ def read_metadata(pth: str) -> dict:
     exif_data["GPSInfo"]["Latitude"] = lat
     exif_data["GPSInfo"]["Longitude"] = lon
 
-    f_md.write("%s\n" % exif_data)
-    f_md.close()
+    if write_md:
+        f_md.write("%s\n" % exif_data)
+        f_md.close()
 
     return orig_exif, exif_data
 
@@ -291,6 +293,16 @@ def import_image(pth: str, match_persons=True) -> Photo:
             ydown=ydown,
             photo=photo,
         )
+
+        # Test si une face avec le meme hash existe
+        q = Face.objects(hash=h)
+        if q.count() > 0:
+            log.error("Duplicate face hash : %s" % h)
+            log.error(pth)
+            dup = q.first()
+            log.error(dup.photo.original_path)
+            exit(1)
+
         face.save()
         lfaces.append(face)
 

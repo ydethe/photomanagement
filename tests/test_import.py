@@ -13,8 +13,8 @@ connect("photo_mgt")
 # Suppression d'un mois dans Mongo shell:
 # db.photo.deleteMany({date_taken:{$gte: new Date('2020-05-01 00:00:00'),$lt:new Date('2020-06-01 00:00:00')}})
 os.makedirs("miniatures", exist_ok=True)
-# for (root, dirs, files) in tqdm(os.walk("tests/Mai2020")):
-for (root, dirs, files) in tqdm(os.walk("tests/Mars2020")):
+for (root, dirs, files) in tqdm(os.walk("tests/Mai2020")):
+    # for (root, dirs, files) in tqdm(os.walk("tests/Mars2020")):
     for f in tqdm(files):
         pth = os.path.join(root, f)
         _, ext = os.path.splitext(pth)
@@ -25,8 +25,7 @@ for (root, dirs, files) in tqdm(os.walk("tests/Mars2020")):
 # p.showFaces()
 # exit(0)
 
-# Photo.showPhoto("60c11743a1e96f6b489df8f9", show_faces=True)
-# Photo.showPhoto("60c11748a1e96f6b489df903", show_faces=True)
+# Photo.showPhoto("60c3621a04e577bc4da0fb73", show_faces=True)
 # exit(0)
 
 # Face.exportAll()
