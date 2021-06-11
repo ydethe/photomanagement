@@ -6,6 +6,7 @@ from mongoengine import (
     connect,
     Document,
     IntField,
+    FloatField,
     StringField,
     ListField,
     ReferenceField,
@@ -63,6 +64,7 @@ class Face(Document):
 
 class Person(Document):
     nom = StringField()
+    address = ReferenceField("Address")
     faces = ListField(ReferenceField(Face))
 
     def saveFaces(self):
@@ -97,16 +99,30 @@ class Person(Document):
             img.show()
 
 
+class Address(Document):
+    ville = StringField()
+    pays = StringField()
+    rue = StringField()
+    numero = IntField()
+    code_postal = StringField()
+    latitude = FloatField()
+    longitude = FloatField()
+    altitude = FloatField()
+    persons = ListField(ReferenceField("Person"))
+    photos = ListField(ReferenceField("Photo"))
+    w3w = StringField(unique=True)
+
+
 class Photo(Document):
     photo = ImageField()
     original_path = StringField(required=True)
     hash = StringField(unique=True, required=True)
-    place_taken = ms.PointField()
+    place_taken = ReferenceField("Address")
     miniature = ImageField(thumbnail_size=(200, 200))
-    inferred_date = BooleanField(required=True)
     date_taken = DateTimeField(required=True)
     faces = ListField(ReferenceField(Face))
     album = ReferenceField("Album")
+    inferred_date = BooleanField()
 
     @classmethod
     def showPhoto(cls, photo_id, show_faces=False):

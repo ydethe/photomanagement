@@ -13,8 +13,10 @@ from PIL import Image
 from PIL.ExifTags import GPSTAGS, TAGS
 from hachoir.parser import createParser
 from hachoir.metadata import extractMetadata
+import what3words
+import geocoder
 
-from PhotoManagement.db import Face, Photo, Person
+from PhotoManagement.db import Face, Photo, Person, Address
 
 
 def get_decimal_coordinates(info: dict) -> Tuple[float]:
@@ -26,7 +28,7 @@ def get_decimal_coordinates(info: dict) -> Tuple[float]:
             s = 0
             mul = [1, 60, 3600]
             for k, m in enumerate(mul):
-                s += float(e[0]) / m
+                s += float(e[k]) / m
 
             info[key] = s * (-1 if ref in ["S", "W"] else 1)
 
@@ -36,10 +38,10 @@ def get_decimal_coordinates(info: dict) -> Tuple[float]:
         return None, None
 
 
-def getAddress(lat: float, lon: float) -> dict:
+def getAddress(lat: float, lon: float, alt: float) -> Address:
     """
 
-    >>> getAddress(43.60467117912294,1.4415632156260192)
+    >>> getAddress(43.60467117912294,1.4415632156260192,0)
     {'city': 'Toulouse',
      'country': 'France',
      'country_code': 'fr',
@@ -53,8 +55,36 @@ def getAddress(lat: float, lon: float) -> dict:
      'suburb': 'Toulouse Centre'}
 
     """
+    w3wgc = what3words.Geocoder("642RI3LY")
+    res = w3wgc.convert_to_3wa(what3words.Coordinates(lat, lon))
+    q = Address.objects(w3w=res["words"])
+    if q.count() > 0:
+        return q.first()
+
     g = geocoder.osm([lat, lon], method="reverse")
-    addr = g.geojson["features"][0]["properties"]["raw"]["address"]
+    dat = g.geojson["features"][0]["properties"]["raw"]["address"]
+
+    if "city" in dat.keys():
+        ville = dat["city"]
+    elif "village" in dat.keys():
+        ville = dat["village"]
+
+    try:
+        addr = Address(
+            ville=ville,
+            pays=dat["country"],
+            rue=dat.get("road", ""),
+            numero=int(dat.get("house_number", "0")),
+            code_postal=dat["postcode"],
+            latitude=lat,
+            longitude=lon,
+            altitude=alt,
+            w3w=res["words"],
+        )
+    except Exception as e:
+        print(dat)
+        exit(1)
+    addr.save()
     return addr
 
 
@@ -124,13 +154,12 @@ def import_image(pth: str, match_persons=True) -> Photo:
     lon = gps_info.get("Longitude", None)
     alt = gps_info.get("GPSAltitude", 0)
     if not lon is None and not lat is None:
-        place_taken = ms.Point([lon, lat, alt])
+        place_taken = getAddress(lat, lon, alt)
     else:
         log.warning("No location data")
         place_taken = None
     inferred_dt = metadata["InferredDateTime"]
     date_taken = metadata.get("DateTimeOriginal", None)
-    # place_taken = {"type": "Point", "coordinates": [lon, lat]}
     image = face_recognition.load_image_file(pth)
 
     with open(pth, "rb") as afile:
@@ -140,8 +169,8 @@ def import_image(pth: str, match_persons=True) -> Photo:
     if Photo.objects(hash=h).count() > 0:
         dup = Photo.objects(hash=h).first()
         log.warning("Duplicate photo :")
-        log.warning("s" % pth)
-        log.warning("s" % dup.original_path)
+        log.warning("%s" % pth)
+        log.warning("%s" % dup.original_path)
         return
 
     if date_taken is None:
@@ -152,7 +181,10 @@ def import_image(pth: str, match_persons=True) -> Photo:
             hash=h, inferred_date=inferred_dt, original_path=pth, date_taken=date_taken
         )
     if not place_taken is None:
+        photo.save()
         photo.place_taken = place_taken
+        place_taken.photos.append(photo)
+        place_taken.save()
     photo.photo.replace(open(pth, "rb"), filename=pth)
     photo.save()
 
