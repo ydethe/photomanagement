@@ -29,7 +29,7 @@ def stringify_keys(md: dict) -> dict:
             sv = md[k]
             if isinstance(sv, IFDRational):
                 sv = float(sv)
-            elif hasattr(sv, "__iter__"):
+            elif hasattr(sv, "__iter__") and not isinstance(sv, str):
                 svl = []
                 for svk in sv:
                     if isinstance(svk, IFDRational):
@@ -154,11 +154,11 @@ def read_metadata(pth: str) -> dict:
     if "DateTimeOriginal" in exif_data.keys():
         date_time_str = exif_data["DateTimeOriginal"]
         # date_time_str='2020:04:02 12:58:12'
-        exif_data["InferredDateTime"] = True
+        exif_data["InferredDateTime"] = False
         dt = datetime.strptime(date_time_str, "%Y:%m:%d %H:%M:%S")
     else:
         # bn="Photo 20-03-13 17-53-52 0558"
-        exif_data["InferredDateTime"] = False
+        exif_data["InferredDateTime"] = True
         dt = datetime.strptime(bn, "Photo %y-%m-%d %H-%M-%S %f")
 
     exif_data["DateTimeOriginal"] = dt
