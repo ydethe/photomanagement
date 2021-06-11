@@ -7,7 +7,6 @@ from datetime import datetime
 from typing import Tuple
 
 import numpy as np
-import mongoshapes as ms
 import face_recognition
 from PIL import Image
 from PIL.ExifTags import GPSTAGS, TAGS

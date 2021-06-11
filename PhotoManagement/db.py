@@ -15,7 +15,6 @@ from mongoengine import (
     DateTimeField,
     BinaryField,
 )
-import mongoshapes as ms
 from PIL import Image, ImageDraw
 import face_recognition
 import numpy as np
