@@ -50,6 +50,18 @@ class Face(Document):
             bn = bn.replace(" ", "_")
             mini.save("%s/%s.jpg" % (dst_dir, face.id))
 
+    def showPhoto(self):
+        self.photo.photo.read()
+        img = Image.open(io.BytesIO(image))
+
+        # Drawing a red rectangle on the photo to locate the person
+        img_with_red_box_draw = ImageDraw.Draw(img)
+        img_with_red_box_draw.rectangle(
+            [(self.xleft, self.yup), (self.xright, self.ydown)], outline="red", width=3,
+        )
+
+        img.show()
+
     def affectToPersonAndSaveAll(self, person):
         person.faces.append(self)
         person.save()
@@ -144,20 +156,19 @@ class Photo(Document):
 
         img.show()
 
-    def showFaces(self):
+    def show(self, show_faces=True):
         image = self.photo.read()
-
         img = Image.open(io.BytesIO(image))
-        # img = Image.fromarray(image, "RGB")
-        img = img.copy()
-        img_with_red_box_draw = ImageDraw.Draw(img)
 
-        for face in self.faces:
-            img_with_red_box_draw.rectangle(
-                [(face.xleft, face.yup), (face.xright, face.ydown)],
-                outline="red",
-                width=3,
-            )
+        if show_faces:
+            img_with_red_box_draw = ImageDraw.Draw(img)
+
+            for face in self.faces:
+                img_with_red_box_draw.rectangle(
+                    [(face.xleft, face.yup), (face.xright, face.ydown)],
+                    outline="red",
+                    width=3,
+                )
 
         img.show()
 
