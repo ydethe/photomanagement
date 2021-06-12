@@ -15,3 +15,4 @@ phonenumbers==8.12.24
 blinker==1.4
 flask-mongoengine==1.0.0
 flask-bootstrap==3.3.7.1
+flask_nav==0.6

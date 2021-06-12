@@ -1,14 +1,15 @@
 import os
 import yaml
 from datetime import datetime
-from mongoengine import connect
+from mongoengine import connect, disconnect
 import phonenumbers
 
 from PhotoManagement import logger
 from PhotoManagement.db import Face, Photo, Person
 
 
-connect("photo_mgt")
+disconnect()
+connect(host="mongodb://localhost:27017/photo_mgt")
 
 
 def fmt_tel(s):
@@ -41,8 +42,8 @@ def clearLinkPersonFace():
     Person.objects().delete()
 
 
-Face.showPhotoForFace(id="60c44c29023fb1c444846411")
-exit(0)
+# Face.showPhotoForFace(id="60c44c29023fb1c444846411")
+# exit(0)
 
 # Face.exportAll()
 # exit(0)
@@ -55,9 +56,11 @@ for root, dirs, files in os.walk(root0):
     if nom == ".":
         continue
 
-    q = Person.objects(airtable_id=nom)
+    nom, aid = nom.split("_")
+
+    q = Person.objects(airtable_id=aid)
     if q.count() == 0:
-        pers = Person(airtable_id=nom)
+        pers = Person(airtable_id=aid)
         pers.save()
         print("Creating %s... " % nom, end="")
     else:

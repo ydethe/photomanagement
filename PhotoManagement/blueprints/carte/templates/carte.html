@@ -4,6 +4,10 @@
     {% if title %}Douceville{% endif %}
 {% endblock %}
 
+{% block navbar %}
+    {{nav.top.render()}}
+{% endblock %}
+
 {% block content %}
 <iframe class="map", src={{url_for('carte.get_map')}} width="1100" height="600"></iframe>
 {{super()}}

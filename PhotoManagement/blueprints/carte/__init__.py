@@ -20,10 +20,6 @@ def createMap():
         if len(a.photos) == 0:
             continue
 
-        photo = a.photos[0]
-
-        lat.append(a.latitude)
-        lon.append(a.longitude)
         if lat_min is None or a.latitude < lat_min:
             lat_min = a.latitude
         if lat_max is None or a.latitude > lat_max:
@@ -33,23 +29,27 @@ def createMap():
         if lon_max is None or a.longitude > lon_max:
             lon_max = a.longitude
 
-        if not hasattr(photo, "miniature"):
-            print("No miniature photo id=%s" % photo.id)
-            continue
+        for photo in a.photos:
+            lat.append(a.latitude)
+            lon.append(a.longitude)
 
-        mini = photo.miniature.read()
-        encoded = base64.b64encode(mini)
-        svg = """
-        <object data="data:image/jpg;base64,{}" width="{}" height="{} type="image/svg+xml">
-        </object>""".format
-        width, height, fat_wh = 78, 78, 1.25
-        iframe = IFrame(
-            svg(encoded.decode("UTF-8"), width, height),
-            width=width * fat_wh,
-            height=height * fat_wh,
-        )
-        popup = folium.Popup(iframe, max_width=2650)
-        info.append(popup)
+            if not hasattr(photo, "miniature"):
+                print("No miniature photo id=%s" % photo.id)
+                continue
+
+            mini = photo.miniature.read()
+            encoded = base64.b64encode(mini)
+            svg = """
+            <object data="data:image/jpg;base64,{}" width="{}" height="{} type="image/svg+xml"></object><br>
+            <a href="localhost:5000/photo?id={}">Voir</a>""".format
+            width, height, fat_wh = 78, 78, 1.25
+            iframe = IFrame(
+                svg(encoded.decode("UTF-8"), width, height, photo.id),
+                width=width * fat_wh,
+                height=(height + 10) * fat_wh,
+            )
+            popup = folium.Popup(iframe, max_width=2650)
+            info.append(popup)
 
     m = folium.Map(
         location=[lat_min / 2 + lat_max / 2, lon_min / 2 + lon_max / 2],

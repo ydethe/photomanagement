@@ -96,23 +96,28 @@ class Face(db.Document):
     def exportAll(cls, dst_dir="faces"):
         os.makedirs(dst_dir, exist_ok=True)
         for face in tqdm(cls.objects()):
-            image = face.photo.photo.read()
-            img = Image.open(io.BytesIO(image))
-
             # Creating a miniature of the person's face
-            mini = img.resize(
-                size=(face.xright - face.xleft, face.ydown - face.yup),
-                box=(face.xleft, face.yup, face.xright, face.ydown),
-            )
+            mini = face.getImage()
             _, fn = os.path.split(face.photo.photo.filename)
             bn, _ = os.path.splitext(fn)
             bn = bn.replace(" ", "_")
-            mini.save("%s/%s.jpg" % (dst_dir, face.id))
+            mini.save("%s/%s.jpg" % (dst_dir, face.hash))
 
     @classmethod
     def showPhotoForFace(cls, **kwargs):
         face = cls.objects(**kwargs).first()
         face.showPhoto()
+
+    def getImage(self) -> Image:
+        image = self.photo.photo.read()
+        img = Image.open(io.BytesIO(image))
+
+        # Creating a miniature of the person's face
+        mini = img.resize(
+            size=(self.xright - self.xleft, self.ydown - self.yup),
+            box=(self.xleft, self.yup, self.xright, self.ydown),
+        )
+        return mini
 
     def showPhoto(self):
         image = self.photo.photo.read()
