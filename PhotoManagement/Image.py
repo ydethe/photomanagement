@@ -183,6 +183,10 @@ def import_image(pth: str, match_persons=True) -> Photo:
 
     log.info(72 * "=")
     log.info(pth)
+
+    # ======================
+    # Lecture des metadata
+    # ======================
     orig_exif, metadata = read_metadata(pth)
     gps_info = metadata.get("GPSInfo", {})
     lat = gps_info.get("Latitude", None)
@@ -195,11 +199,14 @@ def import_image(pth: str, match_persons=True) -> Photo:
         place_taken = None
     inferred_dt = metadata["InferredDateTime"]
     date_taken = metadata.get("DateTimeOriginal", None)
-    image = face_recognition.load_image_file(pth)
 
-    with open(pth, "rb") as afile:
-        buf = afile.read()
-        h = hashlib.sha224(buf).hexdigest()
+    # ======================
+    # Photo creation
+    # ======================
+    img = Image.open(pth)
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG")
+    h = hashlib.sha224(buf.getvalue()).hexdigest()
 
     if Photo.objects(hash=h).count() > 0:
         dup = Photo.objects(hash=h).first()
@@ -224,27 +231,16 @@ def import_image(pth: str, match_persons=True) -> Photo:
             original_path=pth,
             date_taken=date_taken,
         )
+
     if not place_taken is None:
         photo.save()
         photo.place_taken = place_taken
         place_taken.photos.append(photo)
         place_taken.save()
-    photo.photo.replace(open(pth, "rb"), filename=pth)
-    photo.save()
 
     # ======================
-    # Miniature creation
+    # Orientation correction
     # ======================
-    img = Image.fromarray(image, "RGB")
-    w, h = img.size
-    if w < h:
-        mini = img.resize(
-            size=(200, 200), resample=Image.HAMMING, box=(0, (h - w) // 2, w, w)
-        )
-    else:
-        mini = img.resize(
-            size=(200, 200), resample=Image.HAMMING, box=((w - h) // 2, 0, h, h)
-        )
     # angle – In degrees counter clockwise
     if metadata["Orientation"] == 8:
         angle = 90
@@ -254,17 +250,43 @@ def import_image(pth: str, match_persons=True) -> Photo:
         angle = -90
     else:
         angle = 0
+
     if angle != 0:
         log.debug("Rotated a=%i deg, %s" % (angle, photo.id))
-        mini = mini.rotate(angle=angle)
-    mini.save("miniatures/%s.jpg" % photo.id)
-    my_mini = open("miniatures/%s.jpg" % photo.id, "rb")
-    photo.miniature.replace(my_mini, filename=pth)
+        img = img.rotate(angle=angle)
+
+    # ======================
+    # Miniature creation
+    # ======================
+    w, h = img.size
+    if w < h:
+        mini = img.resize(
+            size=(200, 200), resample=Image.HAMMING, box=(0, (h - w) // 2, w, w)
+        )
+    else:
+        mini = img.resize(
+            size=(200, 200), resample=Image.HAMMING, box=((w - h) // 2, 0, h, h)
+        )
+
+    # ======================
+    # Enregistrement photo et miniature
+    # ======================
+    buf = io.BytesIO()
+    mini.save(buf, format="JPEG")
+    photo.miniature.replace(buf, filename=pth)
+
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG")
+    photo.photo.replace(buf, filename=pth)
+
     photo.save()
 
     # ======================
     # Faces detection
     # ======================
+    # image = face_recognition.load_image_file(pth)
+    image = np.array(img)
+
     face_locations = face_recognition.face_locations(image)
     face_encodings = face_recognition.face_encodings(image, face_locations)
 

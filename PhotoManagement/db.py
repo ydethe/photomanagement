@@ -18,6 +18,7 @@ from mongoengine import (
     EnumField,
     URLField,
 )
+from tqdm import tqdm
 from mongoengine import signals
 from PIL import Image, ImageDraw
 from pkg_resources import require
@@ -84,7 +85,7 @@ class Face(Document):
     @classmethod
     def exportAll(cls, dst_dir="faces"):
         os.makedirs(dst_dir, exist_ok=True)
-        for face in cls.objects():
+        for face in tqdm(cls.objects()):
             image = face.photo.photo.read()
             img = Image.open(io.BytesIO(image))
 
@@ -98,8 +99,13 @@ class Face(Document):
             bn = bn.replace(" ", "_")
             mini.save("%s/%s.jpg" % (dst_dir, face.id))
 
+    @classmethod
+    def showPhotoForFace(cls, **kwargs):
+        face = cls.objects(**kwargs).first()
+        face.showPhoto()
+
     def showPhoto(self):
-        self.photo.photo.read()
+        image = self.photo.photo.read()
         img = Image.open(io.BytesIO(image))
 
         # Drawing a red rectangle on the photo to locate the person
@@ -173,7 +179,6 @@ class Address(Document):
     latitude = FloatField()
     longitude = FloatField()
     altitude = FloatField()
-    persons = ListField(ReferenceField("Person"))
     photos = ListField(ReferenceField("Photo"))
     w3w = StringField(unique=True)
 

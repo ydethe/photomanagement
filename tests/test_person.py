@@ -6,8 +6,7 @@ import phonenumbers
 
 from PhotoManagement import logger
 from PhotoManagement.db import Face, Photo, Person
-
-# from PhotoManagement.Image import read_metadata
+from PhotoManagement.Image import read_metadata
 
 
 connect("photo_mgt")
@@ -43,8 +42,11 @@ def clearLinkPersonFace():
     Person.objects().delete()
 
 
-# Face.exportAll()
+# Face.showPhotoForFace(id="60c44e4aaad8fc263b7fee90")
 # exit(0)
+
+Face.exportAll()
+exit(0)
 
 clearLinkPersonFace()
 root0 = "faces"
@@ -59,14 +61,14 @@ for root, dirs, files in os.walk(root0):
 
     pers = Person(**info)
     pers.save()
-    print("Created %s... " % nom, end="")
+    print("Creating %s... " % nom, end="")
 
     for f in files:
         face_hash, _ = os.path.splitext(f)
         face = Face.objects(hash=face_hash).first()
         if face is None:
-            logger.error(face_hash)
-            exit(1)
+            logger.warning(face_hash)
+            continue
         face.affectToPersonAndSaveAll(pers)
 
     print("Done")
