@@ -1,20 +1,12 @@
-""" Usage:
-
-    Start the flask server by running:
-
-        $ python tests/test_map_flask.py
-
-    And then head to http://127.0.0.1:5000/ in your browser to see the map displayed
-
-"""
 import base64
 
 from flask import Flask
 import folium
 from folium import IFrame
 from mongoengine import connect
+from flask import Blueprint
 
-from PhotoManagement.db import Address
+from ...db import Address
 
 
 def createMap():
@@ -73,16 +65,6 @@ def createMap():
     return m
 
 
-connect("photo_mgt")
+carte_bp = Blueprint("carte", __name__, template_folder="templates")
 
-app = Flask(__name__)
-
-
-@app.route("/")
-def index():
-    folium_map = createMap()
-    return folium_map._repr_html_()
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
+from .routes import *

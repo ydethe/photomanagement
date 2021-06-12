@@ -2,18 +2,16 @@
 
 from airtable import Airtable
 
-from .config import loadConfig
+from .config import Config
 
 
 class AirtableManager(object):
-    def __init__(self, fic_cfg):
-        cfg = loadConfig(fic_cfg)
-        self.api_key = cfg["airtable"]["api_key"]
-        self.table_key = cfg["airtable"]["table_key"]
+    def __init__(self):
+        self.api_key = Config.AIRTABLE_KEY
+        self.table_key = Config.AIRTABLE_TABLE
 
         self.tables = {}
-        self.tables["adr_table"] = cfg["airtable"]["adr_table"]
-        self.tables["pers_table"] = cfg["airtable"]["pers_table"]
+        self.tables["pers_table"] = Config.AIRTABLE_PERSON
 
     def get_all_rec(self, table, max_records=10000):
         table = Airtable(self.table_key, self.tables[table], self.api_key,)

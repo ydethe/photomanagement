@@ -13,3 +13,5 @@ folium==0.12.1
 airtable-python-wrapper==0.15.2
 phonenumbers==8.12.24
 blinker==1.4
+flask-mongoengine==1.0.0
+flask-bootstrap==3.3.7.1

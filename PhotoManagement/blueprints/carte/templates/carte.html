@@ -1,0 +1,11 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}
+    {% if title %}Douceville{% endif %}
+{% endblock %}
+
+{% block content %}
+<iframe class="map", src={{url_for('carte.get_map')}} width="1100" height="600"></iframe>
+{{super()}}
+{% endblock %}
+

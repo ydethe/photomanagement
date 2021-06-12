@@ -271,13 +271,13 @@ def import_image(pth: str, match_persons=True) -> Photo:
     # ======================
     # Enregistrement photo et miniature
     # ======================
-    buf = io.BytesIO()
-    mini.save(buf, format="JPEG")
-    photo.miniature.replace(buf, filename=pth)
+    with io.BytesIO() as buf:
+        mini.save(buf, format="JPEG")
+        photo.miniature.replace(buf, filename=pth)
 
-    buf = io.BytesIO()
-    img.save(buf, format="JPEG")
-    photo.photo.replace(buf, filename=pth)
+    with io.BytesIO() as buf:
+        img.save(buf, format="JPEG")
+        photo.photo.replace(buf, filename=pth)
 
     photo.save()
 
@@ -304,7 +304,7 @@ def import_image(pth: str, match_persons=True) -> Photo:
         face_img.save(buf, format="JPEG")
         buf = buf.getvalue()
         h = hashlib.sha224(buf).hexdigest()
-        face_img.save("%s/%s.jpg" % (face_dst_dir, h))
+        # face_img.save("%s/%s.jpg" % (face_dst_dir, h))
 
         face = Face(
             blob=blob,

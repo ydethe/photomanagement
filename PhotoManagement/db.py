@@ -23,8 +23,19 @@ from mongoengine import signals
 from PIL import Image, ImageDraw
 from pkg_resources import require
 
-from . import logger
+from . import logger, db
 from .AirtableManager import AirtableManager
+
+
+# db.createUser(
+#   {
+#     user: "ydethe",
+#     pwd: passwordPrompt(),  // or cleartext password
+#     roles: [
+#        { role: "readWrite", db: "photo_mgt" }
+#     ]
+#   }
+# )
 
 
 def handler(event):
@@ -71,7 +82,7 @@ def photo_suppressed(sender, document):
 
 # https://stackoverflow.com/questions/62986950/deleting-a-reference-in-a-mongoengine-listfield
 @face_suppressed.apply
-class Face(Document):
+class Face(db.Document):
     hash = StringField(unique=True, required=True)
     blob = ListField(FloatField())
     xleft = IntField()
@@ -129,7 +140,7 @@ class Face(Document):
         self.save()
 
 
-class Person(Document):
+class Person(db.Document):
     airtable_id = StringField(unique=True, required=True)
     faces = ListField(ReferenceField(Face))
 
@@ -170,7 +181,7 @@ class Person(Document):
             img.show()
 
 
-class Address(Document):
+class Address(db.Document):
     ville = StringField()
     pays = StringField()
     rue = StringField()
@@ -184,7 +195,7 @@ class Address(Document):
 
 
 @photo_suppressed.apply
-class Photo(Document):
+class Photo(db.Document):
     photo = ImageField()
     original_path = StringField(required=True)
     hash = StringField(unique=True, required=True)
@@ -231,6 +242,6 @@ class Photo(Document):
         img.show()
 
 
-class Album(Document):
+class Album(db.Document):
     titre = StringField()
     photos = ListField(ReferenceField(Photo))

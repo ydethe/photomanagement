@@ -6,7 +6,6 @@ import phonenumbers
 
 from PhotoManagement import logger
 from PhotoManagement.db import Face, Photo, Person
-from PhotoManagement.Image import read_metadata
 
 
 connect("photo_mgt")
@@ -42,13 +41,13 @@ def clearLinkPersonFace():
     Person.objects().delete()
 
 
-# Face.showPhotoForFace(id="60c44e4aaad8fc263b7fee90")
-# exit(0)
-
-Face.exportAll()
+Face.showPhotoForFace(id="60c44c29023fb1c444846411")
 exit(0)
 
-clearLinkPersonFace()
+# Face.exportAll()
+# exit(0)
+
+# clearLinkPersonFace()
 root0 = "faces"
 
 for root, dirs, files in os.walk(root0):
@@ -56,12 +55,14 @@ for root, dirs, files in os.walk(root0):
     if nom == ".":
         continue
 
-    with open(os.path.join(root, "info.yml"), "r") as f:
-        info = yaml.load(f, Loader=yaml.FullLoader)
-
-    pers = Person(**info)
-    pers.save()
-    print("Creating %s... " % nom, end="")
+    q = Person.objects(airtable_id=nom)
+    if q.count() == 0:
+        pers = Person(airtable_id=nom)
+        pers.save()
+        print("Creating %s... " % nom, end="")
+    else:
+        pers = q.first()
+        print("Updating %s... " % nom, end="")
 
     for f in files:
         face_hash, _ = os.path.splitext(f)

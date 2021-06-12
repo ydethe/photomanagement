@@ -4,7 +4,12 @@ import logging
 from datetime import datetime
 import os
 
+from flask import Flask
+from flask_mongoengine import MongoEngine
+from flask_bootstrap import Bootstrap
+
 from .LogFormatter import LogFormatter
+from .config import Config
 
 
 __version__ = get_distribution(__name__).version
@@ -36,3 +41,13 @@ file_handler.setFormatter(formatter)
 logger.handlers = []
 # logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
+
+app = Flask(__name__, instance_relative_config=True)
+app.config.from_object(Config)
+app.logger.addHandler(file_handler)
+db = MongoEngine(app)
+bootstrap = Bootstrap(app)
+
+from .blueprints.carte import carte_bp
+
+app.register_blueprint(carte_bp, url_prefix="/carte")
