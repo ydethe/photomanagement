@@ -3,7 +3,6 @@ import os
 from enum import Enum, unique
 
 from mongoengine import (
-    connect,
     Document,
     IntField,
     FloatField,

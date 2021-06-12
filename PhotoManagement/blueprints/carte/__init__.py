@@ -3,7 +3,6 @@ import base64
 from flask import Flask
 import folium
 from folium import IFrame
-from mongoengine import connect
 from flask import Blueprint
 
 from ...db import Address
