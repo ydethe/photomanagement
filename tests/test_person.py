@@ -42,13 +42,14 @@ def clearLinkPersonFace():
     Person.objects().delete()
 
 
-# Face.showPhotoForFace(id="60c44c29023fb1c444846411")
+# Face.showPhotoForFace(hash="f62015f3339f6edc227294ddf612005981298f37f6ea0ed8d8503783")
+# Face.showPhotoForFace(id="60c5f2cf1addc9a73ac7811b")
 # exit(0)
 
 # Face.exportAll()
 # exit(0)
 
-# clearLinkPersonFace()
+clearLinkPersonFace()
 root0 = "faces"
 
 for root, dirs, files in os.walk(root0):

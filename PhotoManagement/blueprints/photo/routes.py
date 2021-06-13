@@ -37,10 +37,14 @@ def photo():
         if not face.person is None:
             person = face.person
             aid = person.airtable_id
-            rec = am.get_rec_by_id("pers_table", aid)
-            nom = rec["fields"]["Nom complet"]
+            if not aid.startswith("rec"):
+                nom = aid
+            else:
+                rec = am.get_rec_by_id("pers_table", aid)
+                nom = rec["fields"]["Nom complet"]
         else:
             nom = "[unknown]"
+
         names.append(nom)
         img = face.getImage()
         buf = io.BytesIO()
@@ -48,4 +52,10 @@ def photo():
         b64 = base64.b64encode(buf.getbuffer())
         b64_faces.append(b64.decode("UTF-8"))
 
-    return render_template("photo.html", photo=b64_photo, faces=b64_faces, names=names)
+    return render_template(
+        "photo.html",
+        faces_data=[b64_faces, names],
+        photo=b64_photo,
+        faces=b64_faces,
+        names=names,
+    )

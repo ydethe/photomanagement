@@ -10,20 +10,22 @@
 
 {% block content %}
 <img src="data:image/jpeg;base64,{{photo}}" width=768 />
-<table>
-    <TR>
-        {% for face in faces %}
-       <TD><img src="data:image/jpeg;base64,{{face}}" width=75 />
-       </TD>
-       {% endfor %}
-    </TR>
-    <TR>
-        {% for name in names %}
-       <TD>{{name}}
-       </TD>
-       {% endfor %}
-    </TR>
-    </table>
+<table classs="table">
+    <tbody>
+        <TR>
+            {% for face in faces %}
+           <td style="text-align:center"><img src="data:image/jpeg;base64,{{face}}" width=75 />
+           </TD>
+           {% endfor %}
+        </TR>
+        <TR>
+            {% for name in names %}
+           <td style="text-align:center">{{name}}
+           </TD>
+           {% endfor %}
+        </TR>
+    </tbody>
+</table>
 {{super()}}
 {% endblock %}
 

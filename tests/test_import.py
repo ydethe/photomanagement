@@ -5,21 +5,26 @@ from mongoengine import connect
 
 from PhotoManagement.db import Face, Photo, Person
 from PhotoManagement.Image import import_image
+from PhotoManagement.MatchingCandidate import CandidatesList
 
 
 # mongod --config /opt/homebrew/etc/mongod.conf --fork
-connect("photo_mgt")
+# connect("photo_mgt")
 
 # Suppression d'un mois dans Mongo shell:
 # db.photo.deleteMany({date_taken:{$gte: new Date('2020-05-01 00:00:00'),$lt:new Date('2020-06-01 00:00:00')}})
 # os.makedirs("miniatures", exist_ok=True)
+cl = CandidatesList()
 # for (root, dirs, files) in tqdm(os.walk("tests/Mai2020")):
-for (root, dirs, files) in tqdm(os.walk("tests/Mars2020")):
-    for f in tqdm(files):
-        pth = os.path.join(root, f)
-        _, ext = os.path.splitext(pth)
-        if ext.lower() in [".png", ".jpg", ".jpeg"]:
-            photo = import_image(pth, match_persons=False)
+#     # for (root, dirs, files) in tqdm(os.walk("tests/Mars2020")):
+#     for f in tqdm(files):
+#         pth = os.path.join(root, f)
+#         _, ext = os.path.splitext(pth)
+#         if ext.lower() in [".png", ".jpg", ".jpeg"]:
+#             photo = import_image(pth, recog_engine=cl)
+
+photo = import_image("tests/Mai2020/Photo 20-05-02 10-45-02 0911.jpg", recog_engine=cl)
+
 
 # p = Person.objects(nom="Camille").first()
 # p.showFaces()

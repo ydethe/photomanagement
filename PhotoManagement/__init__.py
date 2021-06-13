@@ -1,6 +1,7 @@
 # __init__.py
 from pkg_resources import get_distribution
 import logging
+from logging.handlers import RotatingFileHandler
 from datetime import datetime
 import os
 
@@ -12,7 +13,7 @@ from flask_nav.elements import *
 
 from .LogFormatter import LogFormatter
 from .config import Config
-
+from .AirtableManager import AirtableManager
 
 __version__ = get_distribution(__name__).version
 
@@ -35,13 +36,18 @@ formatter = LogFormatter()
 stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
 
-file_handler = logging.FileHandler(
-    "photomgt.log", mode="w", encoding="utf-8", delay=False
+file_handler = RotatingFileHandler(
+    "photomgt.log",
+    mode="a",
+    maxBytes=1000000,
+    backupCount=1,
+    encoding="utf-8",
+    delay=True,
 )
 file_handler.setFormatter(formatter)
 
 logger.handlers = []
-# logger.addHandler(stream_handler)
+logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
 
 app = Flask(__name__, instance_relative_config=True)
@@ -49,6 +55,8 @@ app.config.from_object(Config)
 app.logger.addHandler(file_handler)
 db = MongoEngine(app)
 bootstrap = Bootstrap(app)
+
+am = AirtableManager()
 
 from .blueprints.carte import carte_bp
 

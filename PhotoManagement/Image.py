@@ -16,7 +16,9 @@ from hachoir.metadata import extractMetadata
 import what3words
 import geocoder
 
-from PhotoManagement.db import Face, Photo, Person, Address
+from .db import Face, Photo, Person, Address
+from . import am
+from .config import Config
 
 
 def stringify_keys(md: dict) -> dict:
@@ -175,7 +177,7 @@ def read_metadata(pth: str, write_md: bool = False) -> dict:
     return orig_exif, exif_data
 
 
-def import_image(pth: str, match_persons=True) -> Photo:
+def import_image(pth: str, recog_engine=None) -> Photo:
     face_dst_dir = "faces"
     os.makedirs(face_dst_dir, exist_ok=True)
 
@@ -210,7 +212,7 @@ def import_image(pth: str, match_persons=True) -> Photo:
 
     if Photo.objects(hash=h).count() > 0:
         dup = Photo.objects(hash=h).first()
-        log.warning("Duplicate photo :")
+        log.warning("Duplicate photo (skipping):")
         log.warning("%s" % pth)
         log.warning("%s" % dup.original_path)
         return
@@ -306,53 +308,43 @@ def import_image(pth: str, match_persons=True) -> Photo:
         h = hashlib.sha224(buf).hexdigest()
         # face_img.save("%s/%s.jpg" % (face_dst_dir, h))
 
-        face = Face(
-            blob=blob,
-            hash=h,
-            xleft=xleft,
-            yup=yup,
-            xright=xright,
-            ydown=ydown,
-            photo=photo,
-        )
-
         # Test si une face avec le meme hash existe
         q = Face.objects(hash=h)
         if q.count() > 0:
-            log.error("Duplicate face hash : %s" % h)
-            log.error(pth)
-            dup = q.first()
-            log.error(dup.photo.original_path)
-            exit(1)
+            log.warning("Duplicate face hash : %s" % h)
+            face = q.first()
+            face.photo = photo
+            face.manually_tagged = False
+        else:
+            face = Face(
+                blob=blob,
+                hash=h,
+                xleft=xleft,
+                yup=yup,
+                xright=xright,
+                ydown=ydown,
+                photo=photo,
+                manually_tagged=False,
+            )
 
         face.save()
+
         lfaces.append(face)
 
-        if match_persons:
-            Jmin = 0
-            matching_person = None
-            for p in Person.objects:
-                test_blobs = [x.blob for x in p.faces]
-                results = face_recognition.face_distance(test_blobs, blob)
-                J = np.sum(results ** 2)
-                if matching_person is None or J < Jmin:
-                    Jmin = J
-                    matching_person = p
+        if not recog_engine is None:
+            log.debug("Recognition face id=%s" % face.id)
 
-            if matching_person is None or Jmin > 0.5:
-                log.info("No Person found %.4f" % Jmin)
-                # matching_person = Person()
-                # matching_person.save()
-                # face.person = matching_person
-                # face.save()
-                # matching_person.faces = [face]
-                # matching_person.save()
-            else:
-                log.info("Found person (%s):\t%.4f" % (matching_person.nom, Jmin))
-                face.person = matching_person
-                face.save()
-                matching_person.faces.append(face)
-                matching_person.save()
+            pid, pmax = recog_engine.testBlob(blob)
+
+            matching_person = Person.objects(id=pid).first()
+            aid = matching_person.airtable_id
+            rec = am.get_rec_by_id("pers_table", aid)
+            matching_name = rec["fields"]["Nom complet"]
+            log.debug("Found person (%s):\t%.4f" % (matching_name, pmax))
+            face.person = matching_person
+            face.save()
+            matching_person.faces.append(face)
+            matching_person.save()
 
     photo.faces = lfaces
     photo.save()
