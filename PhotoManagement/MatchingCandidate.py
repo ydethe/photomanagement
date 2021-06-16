@@ -10,6 +10,9 @@ from .config import Config
 
 class CandidatesList(object):
     def __init__(self):
+        # Dimension
+        nd = 128
+
         self._db = {}
         for p in Person.objects:
             nfaces = len(p.faces)
@@ -18,29 +21,37 @@ class CandidatesList(object):
                 m[:, k] = f.blob
 
             avg = np.mean(m, axis=1, dtype=np.float64)
-            print(np.cov(m[10, :] - avg[10]))
-            cov = np.cov(m, dtype=np.float64)
-            print(cov[10, 10])
-            S = np.linalg.cholesky(lin.inv(cov))
+            # Pas la covariance complete car nd > nfaces ==> non symetrique def. positive
+            std = [np.std(m[k, :], dtype=np.float64) for k in range(nd)]
 
-            self._db[p.id] = (avg, S)
-            break
-        logger.info("Built recog engine database done")
+            self._db[p.id] = (avg, std)
+
+        logger.info("Built recog engine database")
 
     def testBlob(self, tested_blob: np.array):
-        # th=chi2.ppf(df=128, q=Config.RECOGNITION_THRESHOLD)
-        pmax = -1
+        dmin = None
         for pid in self._db.keys():
-            avg, S = self._db[pid]
+            avg, std = self._db[pid]
 
-            Sd = S @ (tested_blob - avg)
-            d2 = Sd @ Sd
+            delta = (tested_blob - avg) / std
+            d2 = delta @ delta
 
-            proba = chi2.cdf(df=128, x=d2)
-            print(d2, proba)
+            p = Person.objects(id=pid).first()
+            aid = p.airtable_id
+            if aid.startswith("rec"):
+                rec = am.get_rec_by_id("pers_table", aid)
+                test_name = rec["fields"]["Nom complet"]
+            else:
+                test_name = aid
 
-            if proba > pmax:
-                pmax = proba
+            logger.debug(" Testing %s -> d = %.3f" % (test_name, np.sqrt(d2)))
+
+            if dmin is None or d2 < dmin:
+                dmin = d2
                 matching_pers = pid
 
-        return matching_pers, pmax
+        return matching_pers, np.sqrt(d2)
+
+
+if __name__ == "__main__":
+    cl = CandidatesList()

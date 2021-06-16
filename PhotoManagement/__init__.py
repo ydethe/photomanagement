@@ -67,7 +67,9 @@ from .blueprints.photo import photo_bp
 app.register_blueprint(photo_bp, url_prefix="/photo")
 
 topbar = Navbar(
-    "johncloud.fr", View("Carte", "carte.carte"), View("Photo", "photo.photo"),
+    "johncloud.fr",
+    View("Carte", "carte.carte"),
+    View("Photo", "photo.photo"),
 )
 
 # registers the "top" menubar

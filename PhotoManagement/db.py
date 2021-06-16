@@ -83,13 +83,15 @@ def photo_suppressed(sender, document):
 @face_suppressed.apply
 class Face(db.Document):
     hash = StringField(unique=True, required=True)
-    blob = ListField(FloatField())
-    xleft = IntField()
-    xright = IntField()
-    ydown = IntField()
-    yup = IntField()
+    embedding = ListField(FloatField())
+    left = IntField()
+    right = IntField()
+    lower = IntField()
+    upper = IntField()
     photo = ReferenceField("Photo", required=True)
     person = ReferenceField("Person")
+    detection_score = FloatField()
+    # landmarks = DictField()
     manually_tagged = BooleanField(default=False)
 
     @classmethod
@@ -114,8 +116,8 @@ class Face(db.Document):
 
         # Creating a miniature of the person's face
         mini = img.resize(
-            size=(self.xright - self.xleft, self.ydown - self.yup),
-            box=(self.xleft, self.yup, self.xright, self.ydown),
+            size=(self.right - self.left, self.lower - self.upper),
+            box=(self.left, self.upper, self.right, self.lower),
         )
         return mini
 
@@ -126,7 +128,9 @@ class Face(db.Document):
         # Drawing a red rectangle on the photo to locate the person
         img_with_red_box_draw = ImageDraw.Draw(img)
         img_with_red_box_draw.rectangle(
-            [(self.xleft, self.yup), (self.xright, self.ydown)], outline="red", width=3,
+            [(self.left, self.upper), (self.right, self.lower)],
+            outline="red",
+            width=3,
         )
 
         img.show()
@@ -162,8 +166,8 @@ class Person(db.Document):
 
             # Creating a miniature of the person's face
             mini = img.resize(
-                size=(face.xright - face.xleft, face.ydown - face.yup),
-                box=(face.xleft, face.yup, face.xright, face.ydown),
+                size=(face.right - face.left, face.lower - face.upper),
+                box=(face.left, face.upper, face.right, face.lower),
             )
             _, fn = os.path.split(face.photo.photo.filename)
             bn, _ = os.path.splitext(fn)
@@ -178,7 +182,7 @@ class Person(db.Document):
             # Drawing a red rectangle on the photo to locate the person
             img_with_red_box_draw = ImageDraw.Draw(img)
             img_with_red_box_draw.rectangle(
-                [(face.xleft, face.yup), (face.xright, face.ydown)],
+                [(face.left, face.upper), (face.right, face.lower)],
                 outline="red",
                 width=3,
             )
@@ -222,7 +226,7 @@ class Photo(db.Document):
             img_with_red_box_draw = ImageDraw.Draw(img)
             for face in photo.faces:
                 img_with_red_box_draw.rectangle(
-                    [(face.xleft, face.yup), (face.xright, face.ydown)],
+                    [(face.left, face.upper), (face.right, face.lower)],
                     outline="red",
                     width=3,
                 )
@@ -238,7 +242,7 @@ class Photo(db.Document):
 
             for face in self.faces:
                 img_with_red_box_draw.rectangle(
-                    [(face.xleft, face.yup), (face.xright, face.ydown)],
+                    [(face.left, face.upper), (face.right, face.lower)],
                     outline="red",
                     width=3,
                 )

@@ -16,14 +16,15 @@ from PhotoManagement.MatchingCandidate import CandidatesList
 # os.makedirs("miniatures", exist_ok=True)
 cl = CandidatesList()
 # for (root, dirs, files) in tqdm(os.walk("tests/Mai2020")):
-#     # for (root, dirs, files) in tqdm(os.walk("tests/Mars2020")):
-#     for f in tqdm(files):
-#         pth = os.path.join(root, f)
-#         _, ext = os.path.splitext(pth)
-#         if ext.lower() in [".png", ".jpg", ".jpeg"]:
-#             photo = import_image(pth, recog_engine=cl)
+for (root, dirs, files) in tqdm(os.walk("tests/Mars2020")):
+    for f in tqdm(files):
+        pth = os.path.join(root, f)
+        _, ext = os.path.splitext(pth)
+        if ext.lower() in [".png", ".jpg", ".jpeg"]:
+            # photo = import_image(pth, recog_engine=cl)
+            photo = import_image(pth)
 
-photo = import_image("tests/Mai2020/Photo 20-05-02 10-45-02 0911.jpg", recog_engine=cl)
+photo = import_image("tests/Mai2020/Photo 20-05-04 13-54-50 0940.jpg", recog_engine=cl)
 
 
 # p = Person.objects(nom="Camille").first()

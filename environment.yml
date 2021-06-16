@@ -2,19 +2,21 @@
 # conda env create -f environment.yml 
 name: pmg
 channels:
+  - conda-forge
   - defaults
-  - anaconda
-  # - conda-forge
 dependencies:
-  - cmake=3.19.6
   - numpy=1.20.2
   - pillow=8.2.0
-  - pip=21.1.2
-  - python=3.9.5
-  - scipy=1.6.2
+  - pip=21.1.1
+  - python=3.8.10
+  - scipy=1.6.3
   - setuptools=52.0.0
+  - tensorflow=2.4.1
+  - tqdm=4.59.0
   - wheel=0.36.2
-  - pyqt=5.9.2
-  - flask=1.1.2
+  - mtcnn=0.1.0
+  - flask=2.0.1
+  - dlib=19.22.0
+  - pandas=1.2.4
   # - pip:
   #   - -r file:requirements.txt
