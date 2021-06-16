@@ -9,4 +9,5 @@ photo = import_image(pth)
 # photo = Photo.objects(original_path=pth).first()
 # lfaces = detect_face(photo)
 
+# For Euclide L2
 recog_th = 1.1315718048269017
