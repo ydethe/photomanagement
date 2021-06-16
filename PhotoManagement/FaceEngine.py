@@ -72,4 +72,6 @@ def detect_face(photo: Photo) -> List[Face]:
 
         faces.append(face_db)
 
+    print("%i faces detected" % len(faces))
+
     return faces

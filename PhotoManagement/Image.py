@@ -20,6 +20,7 @@ import geocoder
 from .db import Face, Photo, Person, Address
 from . import am
 from .config import Config
+from .FaceEngine import detect_face
 
 
 def stringify_keys(md: dict) -> dict:
@@ -287,50 +288,9 @@ def import_image(pth: str, recog_engine=None) -> Photo:
     # ======================
     # Faces detection
     # ======================
-    # image = np.array(img)
-
-    # face_locations = face_recognition.face_locations(image)
-    # face_encodings = face_recognition.face_encodings(image, face_locations)
-
-    # lfaces = []
-    # for blob, loc in zip(face_encodings, face_locations):
-    #     # ((Upper left x, upper left y), (lower right x, lower right y)
-    #     # (loc[3], loc[0]), (loc[1], loc[2])
-    #     yup, xright, ydown, xleft = loc
-
-    #     # Creating a miniature of the person's face
-    #     face_img = img.resize(
-    #         size=(xright - xleft, ydown - yup),
-    #         box=(xleft, yup, xright, ydown),
-    #     )
-    #     buf = io.BytesIO()
-    #     face_img.save(buf, format="JPEG")
-    #     buf = buf.getvalue()
-    #     h = hashlib.sha224(buf).hexdigest()
-    #     # face_img.save("%s/%s.jpg" % (face_dst_dir, h))
-
-    #     # Test si une face avec le meme hash existe
-    #     q = Face.objects(hash=h)
-    #     if q.count() > 0:
-    #         log.warning("Duplicate face hash : %s" % h)
-    #         face = q.first()
-    #         face.photo = photo
-    #         face.manually_tagged = False
-    #     else:
-    #         face = Face(
-    #             blob=blob,
-    #             hash=h,
-    #             xleft=xleft,
-    #             yup=yup,
-    #             xright=xright,
-    #             ydown=ydown,
-    #             photo=photo,
-    #             manually_tagged=False,
-    #         )
-
-    #     face.save()
-
-    #     lfaces.append(face)
+    lfaces = detect_face(photo)
+    photo.faces = lfaces
+    photo.save()
 
     #     if not recog_engine is None:
     #         log.debug("Recognition face id=%s" % face.id)
@@ -349,9 +309,6 @@ def import_image(pth: str, recog_engine=None) -> Photo:
     #         face.save()
     #         matching_person.faces.append(face)
     #         matching_person.save()
-
-    # photo.faces = lfaces
-    # photo.save()
 
     return photo
 
