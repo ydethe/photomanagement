@@ -46,8 +46,8 @@ def clearLinkPersonFace():
 # Face.showPhotoForFace(id="60c9f97087315ec5617a5423")
 # exit(0)
 
-Face.exportAll()
-exit(0)
+# Face.exportAll()
+# exit(0)
 
 clearLinkPersonFace()
 root0 = "faces"

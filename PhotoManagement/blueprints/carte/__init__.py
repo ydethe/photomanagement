@@ -5,7 +5,7 @@ import folium
 from folium import IFrame
 from flask import Blueprint
 
-from ...db import Address
+from ...Address import Address
 
 
 def createMap():

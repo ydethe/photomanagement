@@ -15,7 +15,8 @@ from ...AirtableManager import AirtableManager
 from ... import logger
 from ...config import Config
 from . import photo_bp
-from ...db import Address, Photo, Face
+from ...Photo import Photo
+from ...Face import Face
 
 
 @photo_bp.route("/")
