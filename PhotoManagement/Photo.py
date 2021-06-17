@@ -304,8 +304,7 @@ class Photo(db.Document):
         lon = gps_info.get("Longitude", None)
         alt = gps_info.get("GPSAltitude", 0)
         if not lon is None and not lat is None:
-            place_info = getAddress(lat, lon, alt)
-            place_taken = Address(**place_info)
+            place_taken = getAddress(lat, lon, alt)
         else:
             logger.warning("No location data")
             place_taken = None

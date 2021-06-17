@@ -15,6 +15,8 @@ class BaseConfig(object):
     AIRTABLE_TABLE = "appXvX7qHnPtnThgH"
     AIRTABLE_PERSON = "Personne"
 
+    W3W_KEY = "642RI3LY"
+
     RECOGNITION_THRESHOLD = 0.90
 
 

@@ -3,6 +3,7 @@ import os
 from tqdm import tqdm
 
 from PhotoManagement.Photo import Photo
+from PhotoManagement.Face import Face
 
 
 # Suppression d'un mois dans Mongo shell:
@@ -16,7 +17,7 @@ from PhotoManagement.Photo import Photo
 #         if ext.lower() in [".png", ".jpg", ".jpeg"]:
 #             photo = Photo.importFile(pth, recognize=False)
 
-photo = Photo.importFile("tests/Mars2020/Photo 20-03-14 11-15-11 0587.jpg")
+# photo = Photo.importFile("tests/Mars2020/Photo 20-03-14 11-15-11 0587.jpg")
 # photo = Photo.importFile("tests/Mai2020/Photo 20-05-04 13-54-50 0940.jpg", recognize=True)
 
 
@@ -27,7 +28,7 @@ photo = Photo.importFile("tests/Mars2020/Photo 20-03-14 11-15-11 0587.jpg")
 # Photo.showPhoto("60c44c07023fb1c44484636f", show_faces=True)
 # exit(0)
 
-# Face.exportAll()
+Face.exportAll()
 
 # for p in tqdm(Person.objects):
 #     p.saveFaces()

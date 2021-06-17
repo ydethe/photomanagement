@@ -5,7 +5,9 @@ from mongoengine import connect, disconnect
 import phonenumbers
 
 from PhotoManagement import logger
-from PhotoManagement.db import Face, Photo, Person
+from PhotoManagement.Face import Face
+from PhotoManagement.Photo import Photo
+from PhotoManagement.Person import Person
 
 
 disconnect()

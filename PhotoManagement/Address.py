@@ -1,5 +1,6 @@
 # Address.py
 import io
+from operator import add
 import os
 from enum import Enum, unique
 from typing import Tuple
@@ -19,6 +20,7 @@ from mongoengine import (
     EnumField,
     URLField,
 )
+from tensorflow.python.keras.layers.merge import Add
 from tqdm import tqdm
 from mongoengine import signals
 from PIL import Image, ImageDraw
@@ -27,6 +29,20 @@ import what3words
 import geocoder
 
 from . import logger, db
+from .config import Config
+
+
+class Address(db.Document):
+    ville = StringField()
+    pays = StringField()
+    rue = StringField()
+    numero = IntField()
+    code_postal = StringField()
+    latitude = FloatField()
+    longitude = FloatField()
+    altitude = FloatField()
+    photos = ListField(ReferenceField("Photo"))
+    w3w = StringField(unique=True)
 
 
 def get_decimal_coordinates(info: dict) -> Tuple[float]:
@@ -48,7 +64,7 @@ def get_decimal_coordinates(info: dict) -> Tuple[float]:
         return None, None
 
 
-def getAddress(lat: float, lon: float, alt: float) -> dict:
+def getAddress(lat: float, lon: float, alt: float) -> Address:
     """
 
     >>> getAddress(43.60467117912294,1.4415632156260192,0)
@@ -65,11 +81,12 @@ def getAddress(lat: float, lon: float, alt: float) -> dict:
      'suburb': 'Toulouse Centre'}
 
     """
-    w3wgc = what3words.Geocoder("642RI3LY")
+    w3wgc = what3words.Geocoder(Config.W3W_KEY)
     res = w3wgc.convert_to_3wa(what3words.Coordinates(lat, lon))
     q = Address.objects(w3w=res["words"])
     if q.count() > 0:
-        return q.first()
+        addr = q.first()
+        return addr
 
     g = geocoder.osm([lat, lon], method="reverse")
     dat = g.geojson["features"][0]["properties"]["raw"]["address"]
@@ -82,7 +99,7 @@ def getAddress(lat: float, lon: float, alt: float) -> dict:
         ville = dat["town"]
 
     try:
-        addr = dict(
+        addr = Address(
             ville=ville,
             pays=dat["country"],
             rue=dat.get("road", ""),
@@ -93,21 +110,9 @@ def getAddress(lat: float, lon: float, alt: float) -> dict:
             altitude=alt,
             w3w=res["words"],
         )
+        addr.save()
     except Exception as e:
         print(dat)
         exit(1)
 
     return addr
-
-
-class Address(db.Document):
-    ville = StringField()
-    pays = StringField()
-    rue = StringField()
-    numero = IntField()
-    code_postal = StringField()
-    latitude = FloatField()
-    longitude = FloatField()
-    altitude = FloatField()
-    photos = ListField(ReferenceField("Photo"))
-    w3w = StringField(unique=True)
