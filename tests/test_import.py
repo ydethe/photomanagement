@@ -15,15 +15,13 @@ from PhotoManagement.Face import Face
 #     pth = os.path.join(root, f)
 #     _, ext = os.path.splitext(pth)
 #     if ext.lower() in [".png", ".jpg", ".jpeg"]:
-#         photo = Photo.importFile(pth, recognize=False)
+#         photo = Photo.importFile(pth, recognize=True)
 
-# photo = Photo.importFile("tests/Mars2020/Photo 20-03-14 11-15-11 0587.jpg")
-# Photo.objects(original_path="tests/Mai2020/Photo 20-05-04 13-54-50 0940.jpg").delete()
-# photo = Photo.importFile(
-#     "tests/Mai2020/Photo 20-05-04 13-54-50 0940.jpg", recognize=True
-# )
+pth = "tests/Mai2020/Photo 20-05-04 13-54-51 0944.jpg"
+# pth="tests/Mai2020/Photo 20-05-04 13-54-50 0940.jpg"
+# photo = Photo.importFile(pth,recognize=True)
 # photo = Photo.objects(
-#     original_path="tests/Mai2020/Photo 20-05-04 13-54-50 0940.jpg"
+#     original_path=pth
 # ).first()
 # for face in photo.faces:
 #     if not face.person is None:
@@ -34,9 +32,7 @@ from PhotoManagement.Face import Face
 # p.showFaces()
 # exit(0)
 
-Photo.showPhoto(
-    original_path="tests/Mai2020/Photo 20-05-04 13-54-50 0940.jpg", show_faces=True
-)
+Photo.showPhoto(original_path=pth, show_faces=True)
 exit(0)
 
 # Face.exportAll()

@@ -56,6 +56,7 @@ class Face(db.Document):
     photo = ReferenceField("Photo", required=True)
     person = ReferenceField("Person")
     detection_score = FloatField()
+    recognition_score = FloatField()
     # landmarks = DictField()
     manually_tagged = BooleanField(default=False)
 

@@ -240,7 +240,7 @@ def recognize_face(test_face: Face) -> Person:
     logger.debug("Found '%s'" % matching_info["Nom complet"])
     logger.debug(72 * "-")
 
-    return matching
+    return matching, dmin_pers
 
 
 @handler(signals.pre_delete)
@@ -435,9 +435,10 @@ class Photo(db.Document):
                 face = Face(photo=photo, **face_info)
                 face.save()
             if recognize:
-                matching = recognize_face(face)
+                matching, corr = recognize_face(face)
                 if not matching is None:
                     face.person = matching
+                    face.recognition_score = corr
                     face.save()
             photo.faces.append(face)
         photo.save()
