@@ -11,24 +11,35 @@ from PhotoManagement.Face import Face
 
 # for (root, dirs, files) in tqdm(os.walk("tests/Mai2020")):
 # for (root, dirs, files) in tqdm(os.walk("tests/Mars2020")):
-#     for f in tqdm(files):
-#         pth = os.path.join(root, f)
-#         _, ext = os.path.splitext(pth)
-#         if ext.lower() in [".png", ".jpg", ".jpeg"]:
-#             photo = Photo.importFile(pth, recognize=False)
+# for f in tqdm(files):
+#     pth = os.path.join(root, f)
+#     _, ext = os.path.splitext(pth)
+#     if ext.lower() in [".png", ".jpg", ".jpeg"]:
+#         photo = Photo.importFile(pth, recognize=False)
 
 # photo = Photo.importFile("tests/Mars2020/Photo 20-03-14 11-15-11 0587.jpg")
-# photo = Photo.importFile("tests/Mai2020/Photo 20-05-04 13-54-50 0940.jpg", recognize=True)
-
+# Photo.objects(original_path="tests/Mai2020/Photo 20-05-04 13-54-50 0940.jpg").delete()
+# photo = Photo.importFile(
+#     "tests/Mai2020/Photo 20-05-04 13-54-50 0940.jpg", recognize=True
+# )
+# photo = Photo.objects(
+#     original_path="tests/Mai2020/Photo 20-05-04 13-54-50 0940.jpg"
+# ).first()
+# for face in photo.faces:
+#     if not face.person is None:
+#         rec = face.person.getAirtableInformation()
+#         print(rec["Nom complet"])
 
 # p = Person.objects(nom="Camille").first()
 # p.showFaces()
 # exit(0)
 
-# Photo.showPhoto("60c44c07023fb1c44484636f", show_faces=True)
-# exit(0)
+Photo.showPhoto(
+    original_path="tests/Mai2020/Photo 20-05-04 13-54-50 0940.jpg", show_faces=True
+)
+exit(0)
 
-Face.exportAll()
+# Face.exportAll()
 
 # for p in tqdm(Person.objects):
 #     p.saveFaces()

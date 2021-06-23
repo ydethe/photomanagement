@@ -18,5 +18,5 @@ dependencies:
   - flask=2.0.1
   - dlib=19.22.0
   - pandas=1.2.4
-  # - pip:
-  #   - -r file:requirements.txt
+  - pip:
+    - -r file:requirements.txt

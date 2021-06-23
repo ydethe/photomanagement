@@ -25,7 +25,7 @@ import numpy as np
 from tensorflow.python.keras.layers.merge import Add
 from tqdm import tqdm
 from mongoengine import signals
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 from pkg_resources import require
 from PIL import Image
 from PIL.ExifTags import GPSTAGS, TAGS
@@ -44,7 +44,7 @@ from . import logger, db
 from .config import Config
 from .Face import Face
 from .utils.db import handler
-from .Address import Address, getAddress, get_decimal_coordinates
+from .Address import Address, get_decimal_coordinates
 from .Face import Face
 from .Person import Person
 
@@ -212,18 +212,35 @@ def detect_face(photo: Image) -> List[dict]:
     return faces
 
 
-def recognize_face(test_face: Face):
+def recognize_face(test_face: Face) -> Person:
+    logger.debug("Testing face hash %s" % test_face.hash)
     euclideL2_th = 1.1315718048269017
 
+    dmin_pers = None
+    matching = None
     test_emb = test_face.embedding
     for pers in Person.objects():
+        pers_info = pers.getAirtableInformation()
+
+        dmin_face = None
         for face in pers.faces:
             emb = face.embedding
             d = dst.findEuclideanDistance(
                 dst.l2_normalize(emb), dst.l2_normalize(test_emb)
             )
-            if d < euclideL2_th:
-                print(face.id, pers.airtable_id)
+            logger.debug("%s\t%s\t%.4f" % (pers_info["Nom complet"], face.hash, d))
+            if dmin_face is None or (d < dmin_face and d < euclideL2_th):
+                dmin_face = d
+
+        if not dmin_face is None and (dmin_pers is None or dmin_face < dmin_pers):
+            dmin_pers = dmin_face
+            matching = pers
+            matching_info = pers_info
+
+    logger.debug("Found '%s'" % matching_info["Nom complet"])
+    logger.debug(72 * "-")
+
+    return matching
 
 
 @handler(signals.pre_delete)
@@ -254,10 +271,11 @@ class Photo(db.Document):
     original_exif = DictField()
 
     @classmethod
-    def showPhoto(cls, photo_id, show_faces=False):
-        photo = cls.objects(id=photo_id).first()
+    def showPhoto(cls, show_faces=False, **kwargs):
+        photo = cls.objects(**kwargs).first()
         image = photo.photo.read()
         img = Image.open(io.BytesIO(image))
+        font = ImageFont.truetype("Arial Unicode.ttf", size=15)
 
         if show_faces:
             # Drawing a red rectangle on the photo to locate the person
@@ -267,6 +285,14 @@ class Photo(db.Document):
                     [(face.left, face.upper), (face.right, face.lower)],
                     outline="red",
                     width=3,
+                )
+                if not face.person is None:
+                    rec = face.person.getAirtableInformation()
+                    nom = rec["Nom complet"]
+                else:
+                    nom = "Unknown"
+                img_with_red_box_draw.text(
+                    (face.left, face.lower), nom, font=font, fill="red"
                 )
 
         img.show()
@@ -304,7 +330,7 @@ class Photo(db.Document):
         lon = gps_info.get("Longitude", None)
         alt = gps_info.get("GPSAltitude", 0)
         if not lon is None and not lat is None:
-            place_taken = getAddress(lat, lon, alt)
+            place_taken = Address.fromLatLonAlt(lat, lon, alt)
         else:
             logger.warning("No location data")
             place_taken = None
@@ -401,27 +427,19 @@ class Photo(db.Document):
         # ======================
         lfaces = detect_face(img)
         for face_info in lfaces:
-            face = Face(photo=photo, **face_info)
-            face.save()
+            q = Face.objects(hash=face_info["hash"])
+            if q.count() > 0:
+                face = q.first()
+                logger.debug("Found Face already existing")
+            else:
+                face = Face(photo=photo, **face_info)
+                face.save()
+            if recognize:
+                matching = recognize_face(face)
+                if not matching is None:
+                    face.person = matching
+                    face.save()
             photo.faces.append(face)
         photo.save()
-
-        #     if not recog_engine is None:
-        #         logger.debug("Recognition face id=%s" % face.id)
-
-        #         pid, d = recog_engine.testBlob(blob)
-
-        #         matching_person = Person.objects(id=pid).first()
-        #         aid = matching_person.airtable_id
-        #         if aid.startswith("rec"):
-        #             rec = am.get_rec_by_id("pers_table", aid)
-        #             matching_name = rec["fields"]["Nom complet"]
-        #         else:
-        #             matching_name = aid
-        #         logger.debug("Found person (%s):\td=%.4f" % (matching_name, d))
-        #         face.person = matching_person
-        #         face.save()
-        #         matching_person.faces.append(face)
-        #         matching_person.save()
 
         return photo

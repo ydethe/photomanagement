@@ -23,15 +23,18 @@ from mongoengine import signals
 from PIL import Image, ImageDraw
 from pkg_resources import require
 
-from . import logger, db
+from . import logger, db, am
 from .utils.db import handler
 
 
 @handler(signals.post_delete)
 def face_suppressed(sender, document):
-    logger.debug("Suppress face %s from photo %s" % (document.id, document.photo.id))
-    document.photo.faces.remove(document)
-    document.photo.save()
+    if not document.photo is None:
+        logger.debug(
+            "Suppress face %s from photo %s" % (document.id, document.photo.id)
+        )
+        document.photo.faces.remove(document)
+        document.photo.save()
 
     if not document.person is None:
         logger.debug(
@@ -92,9 +95,7 @@ class Face(db.Document):
         # Drawing a red rectangle on the photo to locate the person
         img_with_red_box_draw = ImageDraw.Draw(img)
         img_with_red_box_draw.rectangle(
-            [(self.left, self.upper), (self.right, self.lower)],
-            outline="red",
-            width=3,
+            [(self.left, self.upper), (self.right, self.lower)], outline="red", width=3,
         )
 
         img.show()

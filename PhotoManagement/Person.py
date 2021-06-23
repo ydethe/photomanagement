@@ -33,8 +33,11 @@ class Person(db.Document):
     faces = ListField(ReferenceField(Face))
 
     def getAirtableInformation(self):
-        rec = am.get_rec_by_id("pers_table", self.airtable_id)
-        return rec["fields"]
+        if self.airtable_id.startswith("rec"):
+            rec = am.get_rec_by_id("pers_table", self.airtable_id)
+            return rec["fields"]
+        else:
+            return {"Nom complet": self.airtable_id}
 
     def saveFaces(self):
         os.makedirs("persons/%s_%s" % (self.nom, self.id), exist_ok=True)
