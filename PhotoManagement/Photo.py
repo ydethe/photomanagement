@@ -37,8 +37,6 @@ from deepface.basemodels import ArcFace
 from deepface.commons import distance as dst
 from hachoir.parser import createParser
 from hachoir.metadata import extractMetadata
-import what3words
-import geocoder
 
 from . import logger, db
 from .config import Config
@@ -150,7 +148,10 @@ def stringify_keys(md: dict) -> dict:
                 svl = []
                 for svk in sv:
                     if isinstance(svk, IFDRational):
-                        svk = float(svk)
+                        if svk.denominator == 0:
+                            svk = np.nan
+                        else:
+                            svk = float(svk)
                     svl.append(svk)
                 sv = svl
 

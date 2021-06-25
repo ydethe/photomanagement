@@ -8,15 +8,18 @@ from PhotoManagement.Face import Face
 
 # Suppression d'un mois dans Mongo shell:
 # db.photo.deleteMany({date_taken:{$gte: new Date('2020-05-01 00:00:00'),$lt:new Date('2020-06-01 00:00:00')}})
+# db.photo.deleteMany({date_taken:{$gte: new Date('2020-04-01 00:00:00'),$lt:new Date('2020-05-01 00:00:00')}})
 
 # for (root, dirs, files) in tqdm(os.walk("tests/Mai2020")):
-# for (root, dirs, files) in tqdm(os.walk("tests/Mars2020")):
-# for f in tqdm(files):
-#     pth = os.path.join(root, f)
-#     _, ext = os.path.splitext(pth)
-#     if ext.lower() in [".png", ".jpg", ".jpeg"]:
-#         photo = Photo.importFile(pth, recognize=True)
+for (root, dirs, files) in tqdm(os.walk("tests/Avril2020")):
+    # for (root, dirs, files) in tqdm(os.walk("tests/Mars2020")):
+    for f in tqdm(files):
+        pth = os.path.join(root, f)
+        _, ext = os.path.splitext(pth)
+        if ext.lower() in [".png", ".jpg", ".jpeg"]:
+            photo = Photo.importFile(pth, recognize=False)
 
+pth = "tests/Mai2020/Photo 20-05-09 21-03-35 0975.jpg"
 pth = "tests/Mai2020/Photo 20-05-04 13-54-51 0944.jpg"
 # pth="tests/Mai2020/Photo 20-05-04 13-54-50 0940.jpg"
 # photo = Photo.importFile(pth,recognize=True)
@@ -32,8 +35,8 @@ pth = "tests/Mai2020/Photo 20-05-04 13-54-51 0944.jpg"
 # p.showFaces()
 # exit(0)
 
-Photo.showPhoto(original_path=pth, show_faces=True)
-exit(0)
+# Photo.showPhoto(original_path=pth, show_faces=True)
+# exit(0)
 
 # Face.exportAll()
 
