@@ -9,23 +9,50 @@
 {% endblock %}
 
 {% block content %}
-<img src="data:image/jpeg;base64,{{photo}}" width=768 />
+<form action="/photo/" method="POST" role="form" class="form-horizontal">
+<input class="form-control" type="text" value="{{photo_id}}" aria-label="photo id" readonly>
 <table classs="table">
     <tbody>
+        <tr>
+            <td>
+                <img src="data:image/jpeg;base64,{{photo}}" width=768 />
+            </td>
+            <td>
+                EXIF
+            </td>
+        </tr>
+
         <TR>
             {% for face in faces %}
            <td style="text-align:center"><img src="data:image/jpeg;base64,{{face}}" width=75 />
            </TD>
            {% endfor %}
         </TR>
-        <TR>
-            {% for name in names %}
-           <td style="text-align:center">{{name}}
-           </TD>
-           {% endfor %}
-        </TR>
+        <tr>
+            {% for name in names_slug %}
+            <td style="text-align:center">
+                <select class="form-select" id="input-{{name}}">
+                    <option selected>{{name}}</option>
+                    {% for p in personslist %}
+                        {% if p != name %}
+                        <option>{{p}}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </td>
+            {% endfor %}
+        </tr>
+        <tr>
+            <td>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" type="submit">Valider</button>
+                </div>
+            </td>
+        </tr>
+        
     </tbody>
 </table>
+</form>
 {{super()}}
 {% endblock %}
 

@@ -52,9 +52,10 @@ logger.addHandler(file_handler)
 
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_object(Config)
+bootstrap = Bootstrap(app)
 app.logger.addHandler(file_handler)
 db = MongoEngine(app)
-bootstrap = Bootstrap(app)
+app.debug = True
 
 am = AirtableManager()
 
