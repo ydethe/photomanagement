@@ -44,9 +44,9 @@ def clearLinkPersonFace():
     Person.objects().delete()
 
 
-# Face.showPhotoForFace(hash="7a553010dca472e2df6f31ead1d88f57cc25fa62687ad2c5e5a27b44")
+Face.showPhotoForFace(hash="42e8bb4213b81d1e2589a9732c67b61709f458e219864dd5e189ee61")
 # Face.showPhotoForFace(id="60c9f97087315ec5617a5423")
-# exit(0)
+exit(0)
 
 # Face.exportAll()
 # exit(0)

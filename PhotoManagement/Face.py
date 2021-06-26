@@ -78,6 +78,10 @@ class Face(db.Document):
         face = cls.objects(**kwargs).first()
         face.showPhoto()
 
+    @property
+    def size(self) -> int:
+        return max(self.right - self.left, self.lower - self.upper)
+
     def getImage(self, lower_margin: int = 0) -> Image:
         image = self.photo.photo.read()
         img = Image.open(io.BytesIO(image))
@@ -144,15 +148,17 @@ class Face(db.Document):
                 if dmin_face is None or (d < dmin_face and d < euclideL2_th):
                     dmin_face = d
 
-            if not dmin_face is None:
-                logger.debug("%s\t%.4f" % (pers_info["Nom complet"], dmin_face))
+            # if not dmin_face is None:
+            #     logger.debug("%s\t%.4f" % (pers_info["Nom complet"], dmin_face))
 
             if not dmin_face is None and (dmin_pers is None or dmin_face < dmin_pers):
                 dmin_pers = dmin_face
                 matching = pers
                 matching_info = pers_info
 
-        logger.debug("--> Found '%s'" % matching_info["Nom complet"])
+        logger.debug(
+            "--> Found '%s',\t%.4f" % (matching_info["Nom complet"], dmin_pers)
+        )
         logger.debug(72 * "-")
 
         return matching, dmin_pers

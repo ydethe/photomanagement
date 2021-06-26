@@ -16,16 +16,27 @@ from PhotoManagement import logger
 # Quitterie : recXpwgB0ESvY6W2A
 # Dad : recKNXFvWuxvDfqL0
 # Mere : recglWKYemBIP9BUn
+# Tiphaine : reccgVoUyKC2YtKVv
+# Rémi : recuokZlLua8RzbT6
 
 qset = Face.objects
 for face in tqdm(
     qset.filter(manually_tagged=False).filter(recognition_score__exists=False)
 ):
+    if face.size < 40:
+        logger.info("Face size %i. Skipping." % face.size)
+        face.delete()
+        continue
+
+    logger.debug("Face size %i" % face.size)
     pers, score = face.recognize()
     rec = pers.getAirtableInformation()
-    # face.show("%s\n%.4f" % (rec["Nom complet"], score))
-    Face.showPhotoForFace(hash=face.hash)
-    chx = input("OK?")
+    if score < 0.8:
+        chx = ""
+    else:
+        # face.show("%s\n%.4f" % (rec["Nom complet"], score))
+        Face.showPhotoForFace(hash=face.hash)
+        chx = input("OK?")
     if chx == "" or chx.lower() == "y" or chx.lower() == "yes":
         face.person = pers
         face.recognition_score = score
