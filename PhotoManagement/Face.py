@@ -78,17 +78,13 @@ class Face(db.Document):
         face = cls.objects(**kwargs).first()
         face.showPhoto()
 
-    def getImage(self) -> Image:
+    def getImage(self, lower_margin: int = 0) -> Image:
         image = self.photo.photo.read()
         img = Image.open(io.BytesIO(image))
 
         # Creating a miniature of the person's face
-        face_img = img.crop((self.left, self.upper, self.right, self.lower))
+        mini = img.crop((self.left, self.upper, self.right, self.lower + lower_margin))
 
-        mini = img.resize(
-            size=(self.right - self.left, self.lower - self.upper),
-            box=(self.left, self.upper, self.right, self.lower),
-        )
         return mini
 
     def showPhoto(self):
@@ -104,7 +100,7 @@ class Face(db.Document):
         img.show()
 
     def show(self, text=""):
-        mini = self.getImage()
+        mini = self.getImage(lower_margin=40)
         if self.manually_tagged:
             color = "green"
         else:
@@ -112,7 +108,9 @@ class Face(db.Document):
 
         font = ImageFont.truetype("Arial Unicode.ttf", size=15)
         img_with_red_box_draw = ImageDraw.Draw(mini)
-        img_with_red_box_draw.text((self.left, self.lower), text, font=font, fill=color)
+        img_with_red_box_draw.text(
+            (0, self.lower - self.upper), text, font=font, fill=color
+        )
         mini.show()
 
     def affectToPersonAndSaveAll(self, person):
@@ -143,16 +141,18 @@ class Face(db.Document):
                 d = dst.findEuclideanDistance(
                     dst.l2_normalize(emb), dst.l2_normalize(test_emb)
                 )
-                logger.debug("%s\t%s\t%.4f" % (pers_info["Nom complet"], face.hash, d))
                 if dmin_face is None or (d < dmin_face and d < euclideL2_th):
                     dmin_face = d
+
+            if not dmin_face is None:
+                logger.debug("%s\t%.4f" % (pers_info["Nom complet"], dmin_face))
 
             if not dmin_face is None and (dmin_pers is None or dmin_face < dmin_pers):
                 dmin_pers = dmin_face
                 matching = pers
                 matching_info = pers_info
 
-        logger.debug("Found '%s'" % matching_info["Nom complet"])
+        logger.debug("--> Found '%s'" % matching_info["Nom complet"])
         logger.debug(72 * "-")
 
         return matching, dmin_pers
