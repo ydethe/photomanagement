@@ -20,11 +20,13 @@ from mongoengine import (
 )
 from tqdm import tqdm
 from mongoengine import signals
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 from pkg_resources import require
+from deepface.commons import distance as dst
 
 from . import logger, db, am
 from .utils.db import handler
+from .Person import Person
 
 
 @handler(signals.post_delete)
@@ -101,6 +103,18 @@ class Face(db.Document):
 
         img.show()
 
+    def show(self, text=""):
+        mini = self.getImage()
+        if self.manually_tagged:
+            color = "green"
+        else:
+            color = "red"
+
+        font = ImageFont.truetype("Arial Unicode.ttf", size=15)
+        img_with_red_box_draw = ImageDraw.Draw(mini)
+        img_with_red_box_draw.text((self.left, self.lower), text, font=font, fill=color)
+        mini.show()
+
     def affectToPersonAndSaveAll(self, person):
         person.faces.append(self)
         person.save()
@@ -112,3 +126,33 @@ class Face(db.Document):
         self.person = person
         self.manually_tagged = True
         self.save()
+
+    def recognize(self) -> Person:
+        logger.debug("Testing face hash %s" % self.hash)
+        euclideL2_th = 1.1315718048269017
+
+        dmin_pers = None
+        matching = None
+        test_emb = self.embedding
+        for pers in Person.objects():
+            pers_info = pers.getAirtableInformation()
+
+            dmin_face = None
+            for face in pers.faces:
+                emb = face.embedding
+                d = dst.findEuclideanDistance(
+                    dst.l2_normalize(emb), dst.l2_normalize(test_emb)
+                )
+                logger.debug("%s\t%s\t%.4f" % (pers_info["Nom complet"], face.hash, d))
+                if dmin_face is None or (d < dmin_face and d < euclideL2_th):
+                    dmin_face = d
+
+            if not dmin_face is None and (dmin_pers is None or dmin_face < dmin_pers):
+                dmin_pers = dmin_face
+                matching = pers
+                matching_info = pers_info
+
+        logger.debug("Found '%s'" % matching_info["Nom complet"])
+        logger.debug(72 * "-")
+
+        return matching, dmin_pers

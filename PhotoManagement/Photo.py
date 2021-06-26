@@ -32,7 +32,6 @@ from PIL.ExifTags import GPSTAGS, TAGS
 from PIL.TiffImagePlugin import IFDRational
 from PIL import Image
 from retinaface import RetinaFace
-from deepface.commons import distance as dst
 from deepface.basemodels import ArcFace
 from deepface.commons import distance as dst
 from hachoir.parser import createParser
@@ -213,37 +212,6 @@ def detect_face(photo: Image) -> List[dict]:
     return faces
 
 
-def recognize_face(test_face: Face) -> Person:
-    logger.debug("Testing face hash %s" % test_face.hash)
-    euclideL2_th = 1.1315718048269017
-
-    dmin_pers = None
-    matching = None
-    test_emb = test_face.embedding
-    for pers in Person.objects():
-        pers_info = pers.getAirtableInformation()
-
-        dmin_face = None
-        for face in pers.faces:
-            emb = face.embedding
-            d = dst.findEuclideanDistance(
-                dst.l2_normalize(emb), dst.l2_normalize(test_emb)
-            )
-            logger.debug("%s\t%s\t%.4f" % (pers_info["Nom complet"], face.hash, d))
-            if dmin_face is None or (d < dmin_face and d < euclideL2_th):
-                dmin_face = d
-
-        if not dmin_face is None and (dmin_pers is None or dmin_face < dmin_pers):
-            dmin_pers = dmin_face
-            matching = pers
-            matching_info = pers_info
-
-    logger.debug("Found '%s'" % matching_info["Nom complet"])
-    logger.debug(72 * "-")
-
-    return matching, dmin_pers
-
-
 @handler(signals.pre_delete)
 def photo_suppressed(sender, document):
     logger.debug("Suppress photo %s (%s)" % (document.id, document.original_path))
@@ -282,9 +250,14 @@ class Photo(db.Document):
             # Drawing a red rectangle on the photo to locate the person
             img_with_red_box_draw = ImageDraw.Draw(img)
             for face in photo.faces:
+                if face.manually_tagged:
+                    color = "green"
+                else:
+                    color = "red"
+
                 img_with_red_box_draw.rectangle(
                     [(face.left, face.upper), (face.right, face.lower)],
-                    outline="red",
+                    outline=color,
                     width=3,
                 )
                 if not face.person is None:
@@ -293,7 +266,7 @@ class Photo(db.Document):
                 else:
                     nom = "Unknown"
                 img_with_red_box_draw.text(
-                    (face.left, face.lower), nom, font=font, fill="red"
+                    (face.left, face.lower), nom, font=font, fill=color
                 )
 
         img.show()
@@ -306,9 +279,13 @@ class Photo(db.Document):
             img_with_red_box_draw = ImageDraw.Draw(img)
 
             for face in self.faces:
+                if face.manually_tagged:
+                    color = "green"
+                else:
+                    color = "red"
                 img_with_red_box_draw.rectangle(
                     [(face.left, face.upper), (face.right, face.lower)],
-                    outline="red",
+                    outline=color,
                     width=3,
                 )
 

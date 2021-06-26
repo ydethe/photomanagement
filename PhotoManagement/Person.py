@@ -25,12 +25,11 @@ from pkg_resources import require
 
 from . import logger, db, am
 from .AirtableManager import AirtableManager
-from .Face import Face
 
 
 class Person(db.Document):
     airtable_id = StringField(unique=True, required=True)
-    faces = ListField(ReferenceField(Face))
+    faces = ListField(ReferenceField("Face"))
 
     def getAirtableInformation(self):
         if self.airtable_id.startswith("rec"):
