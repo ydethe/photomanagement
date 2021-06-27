@@ -40,13 +40,15 @@ def photo():
     am = AirtableManager()
 
     personslist = []
+    slugsList = []
     for pers in Person.objects():
         rec = pers.getAirtableInformation()
         personslist.append(rec["Nom complet"])
+        slugsList.append(slugify(rec["Nom complet"]))
 
     faces = photo.faces
     b64_faces = []
-    names = []
+    names_slug = []
     for face in faces:
         if not face.person is None:
             person = face.person
@@ -59,22 +61,18 @@ def photo():
         else:
             nom = "[unknown]"
 
-        names.append(nom)
+        names_slug.append(slugify(nom))
         img = face.getImage()
         buf = io.BytesIO()
         img.save(buf, format="JPEG")
         b64 = base64.b64encode(buf.getbuffer())
         b64_faces.append(b64.decode("UTF-8"))
 
-    names_slug = [slugify(n) for n in names]
-
     return render_template(
         "photo.html",
         photo_id=id,
-        faces_data=[b64_faces, names],
         photo=b64_photo,
         faces=b64_faces,
-        names=names,
         names_slug=names_slug,
-        personslist=personslist,
+        personslist=list(zip(slugsList, personslist)),
     )

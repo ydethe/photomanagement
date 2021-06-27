@@ -19,24 +19,23 @@
             </td>
             <td>
                 EXIF
+                <input type="text" class="form-control" placeholder="Username" aria-label="Username">
             </td>
         </tr>
 
         <TR>
             {% for face in faces %}
-           <td style="text-align:center"><img src="data:image/jpeg;base64,{{face}}" width=75 />
-           </TD>
-           {% endfor %}
+            <td style="text-align:center">
+                <img src="data:image/jpeg;base64,{{face}}" width=75 />
+            </TD>
+            {% endfor %}
         </TR>
         <tr>
-            {% for name in names_slug %}
+            {% for form_name in names_slug %}
             <td style="text-align:center">
-                <select class="form-select" id="input-{{name}}">
-                    <option selected>{{name}}</option>
-                    {% for p in personslist %}
-                        {% if p != name %}
-                        <option>{{p}}</option>
-                        {% endif %}
+                <select class="form-select" id="input-{{form_name}}">
+                    {% for item in personslist %}
+                        <option value="{{item[0]}}" {% if form_name==item[0] %}selected{% endif %}>{{item[1]}}</option>
                     {% endfor %}
                 </select>
             </td>

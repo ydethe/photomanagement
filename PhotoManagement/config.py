@@ -19,5 +19,7 @@ class BaseConfig(object):
 
     RECOGNITION_THRESHOLD = 0.90
 
+    SECRET_KEY = "C2HWGVorTyyZGfNTBsrYQg8EcMrdTimkZfAb"
+
 
 Config = BaseConfig

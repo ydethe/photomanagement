@@ -55,7 +55,6 @@ app.config.from_object(Config)
 bootstrap = Bootstrap(app)
 app.logger.addHandler(file_handler)
 db = MongoEngine(app)
-app.debug = True
 
 am = AirtableManager()
 
