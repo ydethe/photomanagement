@@ -131,13 +131,18 @@ class Face(db.Document):
 
     def recognize(self) -> Person:
         logger.debug("Testing face hash %s" % self.hash)
+
+        if self.size < 40:
+            logger.debug("Face too small : %i" % self.size)
+            return None, None
+
         euclideL2_th = 1.1315718048269017
 
         dmin_pers = None
         matching = None
         test_emb = self.embedding
         for pers in Person.objects():
-            pers_info = pers.getAirtableInformation()
+            pers_info = pers.complete_name
 
             dmin_face = None
             for face in pers.faces:
@@ -149,16 +154,14 @@ class Face(db.Document):
                     dmin_face = d
 
             # if not dmin_face is None:
-            #     logger.debug("%s\t%.4f" % (pers_info["Nom complet"], dmin_face))
+            #     logger.debug("%s\t%.4f" % (pers_info, dmin_face))
 
             if not dmin_face is None and (dmin_pers is None or dmin_face < dmin_pers):
                 dmin_pers = dmin_face
                 matching = pers
                 matching_info = pers_info
 
-        logger.debug(
-            "--> Found '%s',\t%.4f" % (matching_info["Nom complet"], dmin_pers)
-        )
+        logger.debug("--> Found '%s',\t%.4f" % (matching_info, dmin_pers))
         logger.debug(72 * "-")
 
         return matching, dmin_pers

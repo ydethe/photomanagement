@@ -9,8 +9,8 @@
 {% endblock %}
 
 {% block content %}
-<form action="/photo/" method="POST" role="form" class="form-horizontal">
-<input class="form-control" type="text" value="{{photo_id}}" aria-label="photo id" readonly>
+<form action="/photo/?id={{photo_id}}" method="POST" role="form" class="form-horizontal">
+<input class="form-control" type="text" name="photo_id" value="{{photo_id}}" aria-label="photo id" readonly>
 <table classs="table">
     <tbody>
         <tr>
@@ -19,7 +19,6 @@
             </td>
             <td>
                 EXIF
-                <input type="text" class="form-control" placeholder="Username" aria-label="Username">
             </td>
         </tr>
 
@@ -33,9 +32,9 @@
         <tr>
             {% for form_name in names_slug %}
             <td style="text-align:center">
-                <select class="form-select" id="input-{{form_name}}">
+                <select class="form-select" name="input-{{form_name[1]}}">
                     {% for item in personslist %}
-                        <option value="{{item[0]}}" {% if form_name==item[0] %}selected{% endif %}>{{item[1]}}</option>
+                        <option value="{{item[0]}}" {% if form_name[0]==item[0] %}selected{% endif %}>{{item[1]}}</option>
                     {% endfor %}
                 </select>
             </td>

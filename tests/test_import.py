@@ -28,7 +28,7 @@ pth = "tests/Mai2020/Photo 20-05-04 13-54-51 0944.jpg"
 # ).first()
 # for face in photo.faces:
 #     if not face.person is None:
-#         rec = face.person.getAirtableInformation()
+#         rec = face.person.complete_name
 #         print(rec["Nom complet"])
 
 # p = Person.objects(nom="Camille").first()

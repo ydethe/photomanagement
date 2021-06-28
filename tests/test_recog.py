@@ -28,15 +28,16 @@ for face in tqdm(
         face.delete()
         continue
 
+    logger.debug("Photo id %s" % face.photo.id)
+
     logger.debug("Face size %i" % face.size)
     pers, score = face.recognize()
-    rec = pers.getAirtableInformation()
-    if score < 0.8:
-        chx = ""
-    else:
-        # face.show("%s\n%.4f" % (rec["Nom complet"], score))
-        Face.showPhotoForFace(hash=face.hash)
-        chx = input("OK?")
+    rec = pers.complete_name
+
+    # face.show("%s\n%.4f" % (rec["Nom complet"], score))
+    Face.showPhotoForFace(hash=face.hash)
+    chx = input("OK?")
+
     if chx == "" or chx.lower() == "y" or chx.lower() == "yes":
         face.person = pers
         face.recognition_score = score
@@ -54,7 +55,7 @@ for face in tqdm(
             chx = input("id?")
             q = Person.objects(airtable_id=chx)
         pers = q.first()
-        rec = pers.getAirtableInformation()
+        rec = pers.complete_name
         logger.info("Manually tagged %s" % rec["Nom complet"])
         face.person = pers
         face.manually_tagged = True

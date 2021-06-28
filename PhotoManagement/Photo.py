@@ -239,6 +239,8 @@ class Photo(db.Document):
     inferred_date = BooleanField()
     original_exif = DictField()
 
+    meta = {"ordering": ["date_taken"]}
+
     @classmethod
     def showPhoto(cls, show_faces=False, **kwargs):
         photo = cls.objects(**kwargs).first()
@@ -261,7 +263,7 @@ class Photo(db.Document):
                     width=3,
                 )
                 if not face.person is None:
-                    rec = face.person.getAirtableInformation()
+                    rec = face.person.complete_name
                     nom = rec["Nom complet"]
                 else:
                     nom = "Unknown"

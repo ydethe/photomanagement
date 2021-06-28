@@ -30,6 +30,7 @@ from .AirtableManager import AirtableManager
 class Person(db.Document):
     airtable_id = StringField(unique=True, required=True)
     faces = ListField(ReferenceField("Face"))
+    complete_name = StringField()
 
     def getAirtableInformation(self):
         if self.airtable_id.startswith("rec"):
