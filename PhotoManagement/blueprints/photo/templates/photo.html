@@ -33,8 +33,9 @@
             {% for form_name in names_slug %}
             <td style="text-align:center">
                 <select class="form-select" name="input-{{form_name[1]}}">
+                    <option value="supp">[Supprimer]</option>
                     {% for item in personslist %}
-                        <option value="{{item[0]}}" {% if form_name[0]==item[0] %}selected{% endif %}>{{item[1]}}</option>
+                        <option value="{{item[0]}}" {% if form_name[0]==item[0] %}selected{% endif %}>{% if form_name[2] %}? {% endif %}{{item[1]}}</option>
                     {% endfor %}
                 </select>
             </td>
@@ -43,7 +44,7 @@
         <tr>
             <td>
                 <div class="d-grid gap-2">
-                    <button class="btn btn-primary" type="submit">Valider</button>
+                    <button class="btn btn-primary" type="submit">Suivant</button>
                 </div>
             </td>
         </tr>
