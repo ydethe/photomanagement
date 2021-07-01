@@ -23,7 +23,7 @@ from ...Face import Face
 
 def updateFaces(data: dict, pidList: list) -> str:
     # ImmutableMultiDict([('photo_id', '60d4db7bd9685a94e51b3d25'), ('input-yann-blaudin-de-the', 'alix-de-chanterac'), ('input-ines-blaudin-de-the', 'ines-blaudin-de-the')])
-    # print(data)
+    print(data)
     # print(pidList)
     id = data.get("photo_id", None)
     for k in data.keys():
@@ -46,8 +46,13 @@ def updateFaces(data: dict, pidList: list) -> str:
             face = qf.first()
             face.delete()
         else:
-            ipers = pidList.index(v)
-            pers_id = pidList[ipers]
+            if v.startswith("S"):
+                pers_id = v[1:]
+                tag_auto = True
+            else:
+                pers_id = v
+                tag_auto = False
+
             qp = Person.objects(id=pers_id)
             if qp.count() != 1:
                 logger.error("Person id unknown %s" % pers_id)
@@ -56,6 +61,8 @@ def updateFaces(data: dict, pidList: list) -> str:
                 pers = qp.first()
                 logger.info("Face id %s affected to %s" % (face_id, pers.complete_name))
                 face.affectToPersonAndSaveAll(pers)
+                face.manually_tagged = not tag_auto
+                face.save()
 
     return id
 
@@ -87,12 +94,22 @@ def photo():
             person = face.person
             pid = str(person.id)
             auto_recog = False
+            if face.manually_tagged:
+                score = "Tag manuel"
+            else:
+                score = "Score : %.3f" % face.recognition_score
         else:
             person, score = face.recognize()
+            face.person = person
+            face.recognition_score = score
+            face.save()
+
             if person is None:
                 pid = ""
+                score = "Aucune personne reconnue"
             else:
                 pid = str(person.id)
+                score = "Score : %.3f" % score
             auto_recog = True
 
         names_slug.append(
@@ -101,6 +118,7 @@ def photo():
                 str(face.id),
                 # not face.recognition_score is None and not face.manually_tagged,
                 auto_recog,
+                score,
             )
         )
         img = face.getImage()

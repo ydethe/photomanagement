@@ -31,14 +31,14 @@ from .Person import Person
 
 @handler(signals.post_delete)
 def face_suppressed(sender, document):
-    if not document.photo is None:
+    if not document.photo is None and document in document.photo.faces:
         logger.debug(
             "Suppress face %s from photo %s" % (document.id, document.photo.id)
         )
         document.photo.faces.remove(document)
         document.photo.save()
 
-    if not document.person is None:
+    if not document.person is None and document in document.person.faces:
         logger.debug(
             "Suppress face %s from person %s" % (document.id, document.person.id)
         )
@@ -121,7 +121,7 @@ class Face(db.Document):
         person.faces.append(self)
         person.save()
 
-        if not self.person is None:
+        if not self.person is None and self in self.person.faces:
             self.person.faces.remove(self)
             self.person.save()
 
