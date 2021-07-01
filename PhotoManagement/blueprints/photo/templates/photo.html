@@ -35,7 +35,7 @@
                 <select class="form-select" name="input-{{form_name[1]}}">
                     <option value="supp">[Supprimer]</option>
                     {% for item in personslist %}
-                        <option value="{{item[0]}}" {% if form_name[0]==item[0] %}selected{% endif %}>{% if form_name[2] %}? {% endif %}{{item[1]}}</option>
+                        <option value="{{item[0]}}" {% if form_name[0]==item[0] %}selected{% endif %}>{% if form_name[0]==item[0] and form_name[2] %}? {% endif %}{{item[1]}}</option>
                     {% endfor %}
                 </select>
             </td>

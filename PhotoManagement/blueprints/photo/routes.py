@@ -21,6 +21,45 @@ from ...Photo import Photo
 from ...Face import Face
 
 
+def updateFaces(data: dict, pidList: list) -> str:
+    # ImmutableMultiDict([('photo_id', '60d4db7bd9685a94e51b3d25'), ('input-yann-blaudin-de-the', 'alix-de-chanterac'), ('input-ines-blaudin-de-the', 'ines-blaudin-de-the')])
+    # print(data)
+    # print(pidList)
+    id = data.get("photo_id", None)
+    for k in data.keys():
+        v = data[k]
+        if k == "photo_id":
+            photo = Photo.objects(id=v).first()
+            nphoto = Photo.objects(date_taken__gt=photo.date_taken).first()
+            id = nphoto.id
+            continue
+
+        face_id = k[6:]
+        qf = Face.objects(id=face_id)
+        if qf.count() != 1:
+            logger.error("Face id unknown %s" % face_id)
+            face = None
+        else:
+            face = qf.first()
+
+        if v == "supp" and not face is None:
+            face = qf.first()
+            face.delete()
+        else:
+            ipers = pidList.index(v)
+            pers_id = pidList[ipers]
+            qp = Person.objects(id=pers_id)
+            if qp.count() != 1:
+                logger.error("Person id unknown %s" % pers_id)
+                pers = None
+            else:
+                pers = qp.first()
+                logger.info("Face id %s affected to %s" % (face_id, pers.complete_name))
+                face.affectToPersonAndSaveAll(pers)
+
+    return id
+
+
 @photo_bp.route("/", methods=["POST", "GET"])
 def photo():
     personslist = ["Inconnu"]
@@ -30,43 +69,7 @@ def photo():
         pidList.append(str(pers.id))
 
     if request.method == "POST":
-        # ImmutableMultiDict([('photo_id', '60d4db7bd9685a94e51b3d25'), ('input-yann-blaudin-de-the', 'alix-de-chanterac'), ('input-ines-blaudin-de-the', 'ines-blaudin-de-the')])
-        # print(request.form)
-        # print(pidList)
-        id = request.form.get("photo_id", None)
-        for k in request.form.keys():
-            v = request.form[k]
-            if k == "photo_id":
-                photo = Photo.objects(id=v).first()
-                nphoto = Photo.objects(date_taken__gt=photo.date_taken).first()
-                id = nphoto.id
-                continue
-
-            face_id = k[6:]
-            qf = Face.objects(id=face_id)
-            if qf.count() != 1:
-                logger.error("Face id unknown %s" % face_id)
-                face = None
-            else:
-                face = qf.first()
-
-            if v == "supp" and not face is None:
-                face = qf.first()
-                face.delete()
-            else:
-                ipers = pidList.index(v)
-                pers_id = pidList[ipers]
-                qp = Person.objects(id=pers_id)
-                if qp.count() != 1:
-                    logger.error("Person id unknown %s" % pers_id)
-                    pers = None
-                else:
-                    pers = qp.first()
-                    logger.info(
-                        "Face id %s affected to %s" % (face_id, pers.complete_name)
-                    )
-                    face.affectToPersonAndSaveAll(pers)
-
+        id = updateFaces(request.form, pidList)
     else:
         id = request.args.get("id", None)
 
@@ -83,18 +86,21 @@ def photo():
         if not face.person is None:
             person = face.person
             pid = str(person.id)
+            auto_recog = False
         else:
             person, score = face.recognize()
             if person is None:
                 pid = ""
             else:
-                pid = person.id
+                pid = str(person.id)
+            auto_recog = True
 
         names_slug.append(
             (
                 pid,
-                face.id,
-                not face.recognition_score is None and not face.manually_tagged,
+                str(face.id),
+                # not face.recognition_score is None and not face.manually_tagged,
+                auto_recog,
             )
         )
         img = face.getImage()
