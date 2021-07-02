@@ -25,13 +25,25 @@ def updateFaces(data: dict, pidList: list) -> str:
     # ImmutableMultiDict([('photo_id', '60d4db7bd9685a94e51b3d25'), ('input-yann-blaudin-de-the', 'alix-de-chanterac'), ('input-ines-blaudin-de-the', 'ines-blaudin-de-the')])
     print(data)
     # print(pidList)
-    id = data.get("photo_id", None)
+    # photo_id = data.get("photo_id", None)
     for k in data.keys():
         v = data[k]
         if k == "photo_id":
             photo = Photo.objects(id=v).first()
-            nphoto = Photo.objects(date_taken__gt=photo.date_taken).first()
-            id = nphoto.id
+            nphoto = (
+                Photo.objects(date_taken__gt=photo.date_taken)
+                .order_by("date_taken")
+                .first()
+            )
+            next_photo_id = nphoto.id
+            continue
+        elif k == "photo_lat":
+            continue
+        elif k == "photo_lon":
+            continue
+        elif k == "photo_alt":
+            continue
+        elif k == "photo_date":
             continue
 
         face_id = k[6:]
@@ -64,7 +76,7 @@ def updateFaces(data: dict, pidList: list) -> str:
                 face.manually_tagged = not tag_auto
                 face.save()
 
-    return id
+    return next_photo_id
 
 
 @photo_bp.route("/", methods=["POST", "GET"])
@@ -127,6 +139,15 @@ def photo():
         b64 = base64.b64encode(buf.getbuffer())
         b64_faces.append(b64.decode("UTF-8"))
 
+    if photo.place_taken is None:
+        lat = ""
+        lon = ""
+        alt = ""
+    else:
+        lat = photo.place_taken.latitude
+        lon = photo.place_taken.longitude
+        alt = photo.place_taken.altitude
+
     return render_template(
         "photo.html",
         photo_id=id,
@@ -134,4 +155,8 @@ def photo():
         faces=b64_faces,
         names_slug=names_slug,
         personslist=list(zip(pidList, personslist)),
+        photo_lat=lat,
+        photo_lon=lon,
+        photo_alt=alt,
+        photo_date=photo.date_taken,
     )
