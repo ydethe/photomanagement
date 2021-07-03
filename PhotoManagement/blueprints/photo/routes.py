@@ -1,4 +1,6 @@
 from pkg_resources import require
+from datetime import datetime
+
 from PhotoManagement.Person import Person
 import time
 import base64
@@ -20,6 +22,9 @@ from . import photo_bp
 from ...Photo import Photo
 from ...Face import Face
 
+
+# 2020-04-08 21:32:50
+date_fmt="%Y/%m/%d %H:%M:%S"
 
 def updateFaces(data: dict, pidList: list) -> str:
     # ImmutableMultiDict([('photo_id', '60d4db7bd9685a94e51b3d25'), ('input-yann-blaudin-de-the', 'alix-de-chanterac'), ('input-ines-blaudin-de-the', 'ines-blaudin-de-the')])
@@ -44,6 +49,7 @@ def updateFaces(data: dict, pidList: list) -> str:
         elif k == "photo_alt":
             continue
         elif k == "photo_date":
+            date_taken=datetime.strptime(v, date_fmt)
             continue
 
         face_id = k[6:]
@@ -158,5 +164,5 @@ def photo():
         photo_lat=lat,
         photo_lon=lon,
         photo_alt=alt,
-        photo_date=photo.date_taken,
+        photo_date=datetime.strftime(photo.date_taken, date_fmt),
     )
