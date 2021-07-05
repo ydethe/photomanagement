@@ -4,13 +4,18 @@
     {% if title %}Douceville{% endif %}
 {% endblock %}
 
-{% block navbar %}
-    {{nav.top.render()}}
-{% endblock %}
 
 {% block content %}
-<form action="/photo/" method="POST" role="form" class="form-horizontal">
-<input class="form-control" type="text" name="photo_id" value="{{photo_id}}" aria-label="photo id" readonly>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{url_for('.photo')}}">Racine</a></li>
+        <li class="breadcrumb-item"><a href="{{url_for('.photo', year=photo_year)}}">{{photo_year}}</a></li>
+        <li class="breadcrumb-item"><a href="{{url_for('.photo', year=photo_year,month=photo_month)}}">{{photo_month_name}}</a></li>
+        <li class="breadcrumb-item"><a href="{{url_for('.photo', year=photo_year,month=photo_month,day=photo_day)}}">{{photo_day}}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{photo_id}}</li>
+    </ol>
+</nav>
+<form action="{{url_for('.photo', year=next_photo_year,month=next_photo_month,day=next_photo_day,photo_id=next_photo_id)}}" method="POST" role="form" class="form-horizontal">
 <table classs="table">
     <tbody>
         <tr>

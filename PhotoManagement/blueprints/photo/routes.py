@@ -1,7 +1,7 @@
+from mongoengine.connection import disconnect
 from pkg_resources import require
 from datetime import datetime
 
-from PhotoManagement.Person import Person
 import time
 import base64
 import io
@@ -21,35 +21,68 @@ from ...config import Config
 from . import photo_bp
 from ...Photo import Photo
 from ...Face import Face
+from ...Person import Person
 
 
 # 2020-04-08 21:32:50
-date_fmt="%Y/%m/%d %H:%M:%S"
+date_fmt = "%Y/%m/%d %H:%M:%S"
 
-def updateFaces(data: dict, pidList: list) -> str:
+
+def buildDisplayList(year: int, month: int, day: int) -> list:
+    if year is None or year == "":
+        q = Photo.objects.order_by("date_taken")
+        disp_list = [photo.date_taken.year for photo in q]
+    elif month is None or month == "":
+        dt_inf = datetime(year=year, month=1, day=1, hour=0, minute=0, second=0)
+        dt_sup = datetime(year=year + 1, month=1, day=1, hour=0, minute=0, second=0)
+        q = (
+            Photo.objects.filter(date_taken__gte=dt_inf)
+            .filter(date_taken__lt=dt_sup)
+            .order_by("date_taken")
+        )
+        disp_list = [photo.date_taken.month for photo in q]
+    elif day is None or day == "":
+        dt_inf = datetime(year=year, month=month, day=1, hour=0, minute=0, second=0)
+        dt_sup = datetime(year=year, month=month + 1, day=1, hour=0, minute=0, second=0)
+        q = (
+            Photo.objects.filter(date_taken__gte=dt_inf)
+            .filter(date_taken__lt=dt_sup)
+            .order_by("date_taken")
+        )
+        disp_list = [photo.date_taken.day for photo in q]
+    elif not day is None and day != "":
+        dt_inf = datetime(year=year, month=month, day=day, hour=0, minute=0, second=0)
+        dt_sup = datetime(
+            year=year, month=month, day=day + 1, hour=0, minute=0, second=0
+        )
+        q = (
+            Photo.objects.filter(date_taken__gte=dt_inf)
+            .filter(date_taken__lt=dt_sup)
+            .order_by("date_taken")
+        )
+        disp_list = [photo.id for photo in q]
+
+    # Remove duplicates
+    disp_list = list(dict.fromkeys(disp_list))
+
+    return disp_list
+
+
+def updateFaces(data: dict) -> str:
     # ImmutableMultiDict([('photo_id', '60d4db7bd9685a94e51b3d25'), ('input-yann-blaudin-de-the', 'alix-de-chanterac'), ('input-ines-blaudin-de-the', 'ines-blaudin-de-the')])
-    print(data)
-    # print(pidList)
+    # print(data)
     # photo_id = data.get("photo_id", None)
+
     for k in data.keys():
         v = data[k]
-        if k == "photo_id":
-            photo = Photo.objects(id=v).first()
-            nphoto = (
-                Photo.objects(date_taken__gt=photo.date_taken)
-                .order_by("date_taken")
-                .first()
-            )
-            next_photo_id = nphoto.id
-            continue
-        elif k == "photo_lat":
+        if k == "photo_lat":
             continue
         elif k == "photo_lon":
             continue
         elif k == "photo_alt":
             continue
         elif k == "photo_date":
-            date_taken=datetime.strptime(v, date_fmt)
+            date_taken = datetime.strptime(v, date_fmt)
             continue
 
         face_id = k[6:]
@@ -82,11 +115,37 @@ def updateFaces(data: dict, pidList: list) -> str:
                 face.manually_tagged = not tag_auto
                 face.save()
 
-    return next_photo_id
 
+@photo_bp.route("/", defaults={"year": "", "month": "", "day": "", "photo_id": ""})
+@photo_bp.route("/<int:year>", defaults={"month": "", "day": "", "photo_id": ""})
+@photo_bp.route("/<int:year>/<int:month>", defaults={"day": "", "photo_id": ""})
+@photo_bp.route("/<int:year>/<int:month>/<int:day>", defaults={"photo_id": ""})
+@photo_bp.route("/<int:year>/<int:month>/<int:day>/<photo_id>", methods=["POST", "GET"])
+def photo(year, month, day, photo_id):
+    # logger.debug("%s,%s,%s,%s"%(type(year),month,day,photo_id))
+    if year == "":
+        disp_list = buildDisplayList(year, month, day)
+        return render_template("list_all.html", disp_list=disp_list)
+    elif month == "":
+        disp_list = buildDisplayList(year, month, day)
+        l_month_names = [
+            datetime.strftime(datetime(year=1986, month=m, day=20), "%B")
+            for m in disp_list
+        ]
+        return render_template(
+            "list_year.html", year=year, disp_list=zip(disp_list, l_month_names)
+        )
+    elif day == "":
+        disp_list = buildDisplayList(year, month, day)
+        return render_template(
+            "list_month.html", year=year, month=month, disp_list=disp_list
+        )
+    elif photo_id == "":
+        disp_list = buildDisplayList(year, month, day)
+        return render_template(
+            "list_day.html", year=year, month=month, day=day, disp_list=disp_list
+        )
 
-@photo_bp.route("/", methods=["POST", "GET"])
-def photo():
     personslist = ["Inconnu"]
     pidList = [""]
     for pers in Person.objects():
@@ -94,14 +153,24 @@ def photo():
         pidList.append(str(pers.id))
 
     if request.method == "POST":
-        id = updateFaces(request.form, pidList)
-    else:
-        id = request.args.get("id", None)
+        print("Update faces for %s" % photo_id)
+        print(request.form)
+        # updateFaces(request.form)
 
-    if id is None:
-        return
+    # Find next photo
+    photo = Photo.objects(id=photo_id).first()
+    photo_year, photo_month, photo_month_name, photo_day, _ = photo.date_elements
+    nphoto = (
+        Photo.objects(date_taken__gt=photo.date_taken).order_by("date_taken").first()
+    )
+    (
+        next_photo_year,
+        next_photo_month,
+        next_photo_month_name,
+        next_photo_day,
+        next_photo_id,
+    ) = nphoto.date_elements
 
-    photo = Photo.objects(id=id).first()
     b64 = base64.b64encode(photo.photo.read())
     b64_photo = b64.decode("UTF-8")
 
@@ -112,7 +181,7 @@ def photo():
             person = face.person
             pid = str(person.id)
             auto_recog = False
-            if face.manually_tagged:
+            if face.manually_tagged or not face.recognition_score:
                 score = "Tag manuel"
             else:
                 score = "Score : %.3f" % face.recognition_score
@@ -156,7 +225,15 @@ def photo():
 
     return render_template(
         "photo.html",
-        photo_id=id,
+        photo_id=photo_id,
+        photo_year=photo_year,
+        photo_month=photo_month,
+        photo_month_name=photo_month_name,
+        photo_day=photo_day,
+        next_photo_id=next_photo_id,
+        next_photo_year=next_photo_year,
+        next_photo_month=next_photo_month,
+        next_photo_day=next_photo_day,
         photo=b64_photo,
         faces=b64_faces,
         names_slug=names_slug,

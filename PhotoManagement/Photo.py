@@ -415,7 +415,7 @@ class Photo(db.Document):
                 face = Face(photo=photo, **face_info)
                 face.save()
             if recognize:
-                matching, corr = recognize_face(face)
+                matching, corr = face.recognize_face()
                 if not matching is None:
                     face.person = matching
                     face.recognition_score = corr
@@ -424,3 +424,12 @@ class Photo(db.Document):
         photo.save()
 
         return photo
+
+    @property
+    def date_elements(self):
+        photo_year = self.date_taken.year
+        photo_month = self.date_taken.month
+        photo_month_name = datetime.strftime(self.date_taken, "%B")
+        photo_day = self.date_taken.day
+        photo_id = self.id
+        return photo_year, photo_month, photo_month_name, photo_day, photo_id

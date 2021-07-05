@@ -1,0 +1,22 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}
+    {% if title %}Douceville{% endif %}
+{% endblock %}
+
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{url_for('.photo')}}">Racine</a></li>
+        <li class="breadcrumb-item"><a href="{{url_for('.photo',year=year)}}">{{year}}</a></li>
+        <li class="breadcrumb-item"><a href="{{url_for('.photo',year=year,month=month)}}">{{month}}</a></li>
+        <li class="breadcrumb-item" active" aria-current="page">{{day}}</li>
+    </ol>
+</nav>
+{% for photo_id in disp_list %}
+    <a href="{{url_for('.photo', year=year,month=month,day=day,photo_id=photo_id)}}">{{photo_id}}</a><br>
+{% endfor %}
+{{super()}}
+{% endblock %}
+
