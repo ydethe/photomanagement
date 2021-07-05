@@ -116,10 +116,23 @@ def updateFaces(data: dict) -> str:
                 face.save()
 
 
-@photo_bp.route("/", defaults={"year": "", "month": "", "day": "", "photo_id": ""})
-@photo_bp.route("/<int:year>", defaults={"month": "", "day": "", "photo_id": ""})
-@photo_bp.route("/<int:year>/<int:month>", defaults={"day": "", "photo_id": ""})
-@photo_bp.route("/<int:year>/<int:month>/<int:day>", defaults={"photo_id": ""})
+@photo_bp.route("/")
+def photo_defaults():
+    return photo(year="", month="", day="", photo_id="")
+
+
+@photo_bp.route(
+    "/<int:year>",
+    defaults={"month": "", "day": "", "photo_id": "", "previous_photo_id": ""},
+)
+@photo_bp.route(
+    "/<int:year>/<int:month>",
+    defaults={"day": "", "photo_id": "", "previous_photo_id": ""},
+)
+@photo_bp.route(
+    "/<int:year>/<int:month>/<int:day>",
+    defaults={"photo_id": "", "previous_photo_id": ""},
+)
 @photo_bp.route("/<int:year>/<int:month>/<int:day>/<photo_id>", methods=["POST", "GET"])
 def photo(year, month, day, photo_id):
     # logger.debug("%s,%s,%s,%s"%(type(year),month,day,photo_id))
@@ -137,8 +150,13 @@ def photo(year, month, day, photo_id):
         )
     elif day == "":
         disp_list = buildDisplayList(year, month, day)
+        month_name = datetime.strftime(datetime(year=1986, month=month, day=20), "%B")
         return render_template(
-            "list_month.html", year=year, month=month, disp_list=disp_list
+            "list_month.html",
+            year=year,
+            month=month,
+            month_name=month_name,
+            disp_list=disp_list,
         )
     elif photo_id == "":
         disp_list = buildDisplayList(year, month, day)
@@ -153,9 +171,8 @@ def photo(year, month, day, photo_id):
         pidList.append(str(pers.id))
 
     if request.method == "POST":
-        print("Update faces for %s" % photo_id)
-        print(request.form)
-        # updateFaces(request.form)
+        # print(request.form)
+        updateFaces(request.form)
 
     # Find next photo
     photo = Photo.objects(id=photo_id).first()
@@ -180,7 +197,6 @@ def photo(year, month, day, photo_id):
         if not face.person is None:
             person = face.person
             pid = str(person.id)
-            auto_recog = False
             if face.manually_tagged or not face.recognition_score:
                 score = "Tag manuel"
             else:
@@ -197,7 +213,8 @@ def photo(year, month, day, photo_id):
             else:
                 pid = str(person.id)
                 score = "Score : %.3f" % score
-            auto_recog = True
+
+        auto_recog = not face.manually_tagged
 
         names_slug.append(
             (

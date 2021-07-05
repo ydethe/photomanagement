@@ -4,11 +4,14 @@
     {% if title %}Douceville{% endif %}
 {% endblock %}
 
+{% block navbar %}
+{{nav.top.render()}}
+{% endblock %}
 
 {% block content %}
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{{url_for('.photo')}}">Racine</a></li>
+        <li class="breadcrumb-item"><a href="{{url_for('.photo_defaults')}}">Racine</a></li>
         <li class="breadcrumb-item"><a href="{{url_for('.photo', year=photo_year)}}">{{photo_year}}</a></li>
         <li class="breadcrumb-item"><a href="{{url_for('.photo', year=photo_year,month=photo_month)}}">{{photo_month_name}}</a></li>
         <li class="breadcrumb-item"><a href="{{url_for('.photo', year=photo_year,month=photo_month,day=photo_day)}}">{{photo_day}}</a></li>

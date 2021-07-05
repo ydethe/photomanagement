@@ -4,6 +4,10 @@
     {% if title %}Douceville{% endif %}
 {% endblock %}
 
+{% block navbar %}
+{{nav.top.render()}}
+{% endblock %}
+
 
 {% block content %}
 <nav aria-label="breadcrumb">
