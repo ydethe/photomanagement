@@ -37,16 +37,13 @@ def photo_defaults():
 
 
 @photo_bp.route(
-    "/<int:year>",
-    defaults={"month": "", "day": "", "photo_id": "", "previous_photo_id": ""},
+    "/<int:year>", defaults={"month": "", "day": "", "photo_id": ""},
 )
 @photo_bp.route(
-    "/<int:year>/<int:month>",
-    defaults={"day": "", "photo_id": "", "previous_photo_id": ""},
+    "/<int:year>/<int:month>", defaults={"day": "", "photo_id": ""},
 )
 @photo_bp.route(
-    "/<int:year>/<int:month>/<int:day>",
-    defaults={"photo_id": "", "previous_photo_id": ""},
+    "/<int:year>/<int:month>/<int:day>", defaults={"photo_id": ""},
 )
 @photo_bp.route("/<int:year>/<int:month>/<int:day>/<photo_id>", methods=["POST", "GET"])
 def photo(year, month, day, photo_id):
