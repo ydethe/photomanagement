@@ -1,0 +1,29 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}
+    {% if title %}Douceville{% endif %}
+{% endblock %}
+
+{% block navbar %}
+{{nav.top.render()}}
+{% endblock %}
+
+{% block content %}
+<table classs="table">
+    <tbody>
+        {% for pers in plist %}
+        <tr>
+            <td>
+                {{pers[0]}}
+            </td>
+            <td>
+                <img src="data:image/jpeg;base64,{{pers[1]}}" width=75 />
+            </td>
+        </tr>
+        {% endfor %}
+        
+    </tbody>
+</table>
+{{super()}}
+{% endblock %}
+

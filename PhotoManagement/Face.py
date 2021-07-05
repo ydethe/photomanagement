@@ -2,6 +2,7 @@
 import io
 import os
 from enum import Enum, unique
+import base64
 
 from mongoengine import (
     Document,
@@ -90,6 +91,13 @@ class Face(db.Document):
         mini = img.crop((self.left, self.upper, self.right, self.lower + lower_margin))
 
         return mini
+
+    def getB64Image(self) -> bytes:
+        img = self.getImage()
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG")
+        b64 = base64.b64encode(buf.getbuffer())
+        return b64
 
     def showPhoto(self):
         image = self.photo.photo.read()
