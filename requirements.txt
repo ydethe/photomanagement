@@ -17,4 +17,6 @@ flask-mongoengine==1.0.0
 flask-bootstrap==3.3.7.1
 flask_nav==0.6
 deepface==0.0.53
-python-slugify==5.0.2
+iython-slugify==5.0.2
+sentry_sdk
+

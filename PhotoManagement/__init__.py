@@ -5,11 +5,13 @@ from logging.handlers import RotatingFileHandler
 from datetime import datetime
 import os
 
+import sentry_sdk
 from flask import Flask
 from flask_mongoengine import MongoEngine
 from flask_bootstrap import Bootstrap
 from flask_nav import Nav
 from flask_nav.elements import *
+from sentry_sdk.integrations.flask import FlaskIntegration
 
 from .LogFormatter import LogFormatter
 from .config import Config
@@ -49,6 +51,16 @@ file_handler.setFormatter(formatter)
 logger.handlers = []
 logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
+
+sentry_sdk.init(
+            dsn="https://2c3d694b175245dc9dc0a7e543786bb9@o913274.ingest.sentry.io/5851004",
+                integrations=[FlaskIntegration()],
+
+                    # Set traces_sample_rate to 1.0 to capture 100%
+                        # of transactions for performance monitoring.
+                            # We recommend adjusting this value in production.
+                                traces_sample_rate=1.0
+                                )
 
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_object(Config)
