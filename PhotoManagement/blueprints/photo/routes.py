@@ -62,6 +62,7 @@ def photo(year, month, day, photo_id):
         )
     elif day == "":
         disp_list = buildDisplayList(year, month, day)
+        disp_list = ["%.2i" % m for m in disp_list]
         month_name = datetime.strftime(datetime(year=1986, month=month, day=20), "%B")
         return render_template(
             "list_month.html",
@@ -72,8 +73,15 @@ def photo(year, month, day, photo_id):
         )
     elif photo_id == "":
         disp_list = buildDisplayList(year, month, day)
+        month_name = datetime.strftime(datetime(year=1986, month=month, day=20), "%B")
+        day = "%.2i" % day
         return render_template(
-            "list_day.html", year=year, month=month, day=day, disp_list=disp_list
+            "list_day.html",
+            year=year,
+            month=month,
+            month_name=month_name,
+            day=day,
+            disp_list=disp_list,
         )
 
     personslist = ["Inconnu"]
@@ -155,7 +163,7 @@ def photo(year, month, day, photo_id):
         photo_year=photo_year,
         photo_month=photo_month,
         photo_month_name=photo_month_name,
-        photo_day=photo_day,
+        photo_day="%.2i" % photo_day,
         next_photo_id=next_photo_id,
         next_photo_year=next_photo_year,
         next_photo_month=next_photo_month,
