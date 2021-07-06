@@ -124,6 +124,6 @@ def buildPersonsList():
         img = face.getB64Image()
         b64img = img.decode("UTF-8")
 
-        res.append((nom, b64img))
+        res.append((p.id, nom, b64img))
 
     return res

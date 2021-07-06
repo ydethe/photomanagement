@@ -1,0 +1,35 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}
+    {% if title %}Douceville{% endif %}
+{% endblock %}
+
+{% block navbar %}
+{{nav.top.render()}}
+{% endblock %}
+
+{% block content %}
+<form action="{{url_for('.recherche')}}" method="POST" role="form" class="form-horizontal">
+    <div class="form-row">
+        <div class="form-group col-md-6">
+        <label for="inputDateDebut">Date début</label>
+        <input class="form-control" id="inputDateDebut" placeholder="Date début" name="dateDebut">
+        </div>
+        <div class="form-group col-md-6">
+        <label for="inputDateFin">Date fin</label>
+        <input class="form-control" id="inputDateFin" placeholder="Date fin" name="dateFin">
+        </div>
+    </div>
+    <div class="form-row">
+        <label for="persChoice">Personne présente</label>
+        <select class="custom-select" multiple id="persChoice" name="inputPersonne">
+            {% for item in personslist %}
+                <option value="{{item[0]}}">{{item[1]}}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Rechercher</button>
+</form>
+{{super()}}
+{% endblock %}
+
