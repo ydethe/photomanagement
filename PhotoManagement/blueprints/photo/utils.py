@@ -24,7 +24,7 @@ from ...Face import Face
 from ...Person import Person
 
 
-# 2020-04-08 21:32:50
+# 2020/04/08 21:32:50
 date_fmt = "%Y/%m/%d %H:%M:%S"
 
 

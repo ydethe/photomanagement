@@ -93,7 +93,7 @@ topbar = Navbar(
     View("Carte", "carte.carte"),
     View("Photos", "photo.photo_defaults"),
     View("Personnes", "photo.personnes"),
-    View("Recherche", "recherche.recherche"),
+    View("Recherche", "recherche.form"),
 )
 
 # registers the "top" menubar
