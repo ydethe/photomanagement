@@ -1,0 +1,38 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}
+    {% if title %}Douceville{% endif %}
+{% endblock %}
+
+{% block navbar %}
+{{nav.top.render()}}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <table classs="table table-striped">
+    <!-- <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Photo</th>
+      </tr>
+    </thead> -->
+    <tbody>
+        {% for photo in photosList %}
+        <tr>
+            <td>
+                <figure class="figure">
+                    <a href="{{photo[0]}}">
+                    <img src="data:image/jpeg;base64,{{photo[1]}}" width=75 class="figure-img img-fluid rounded">
+                    </a>
+                </figure>
+            </td>
+        </tr>
+        {% endfor %}
+        
+    </tbody>
+</table>
+</div>
+{{super()}}
+{% endblock %}
+

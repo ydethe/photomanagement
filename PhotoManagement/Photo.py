@@ -5,6 +5,7 @@ from enum import Enum, unique
 import hashlib
 from typing import List
 from datetime import datetime
+import base64
 
 from mongoengine import (
     Document,
@@ -27,10 +28,8 @@ from tqdm import tqdm
 from mongoengine import signals
 from PIL import Image, ImageDraw, ImageFont
 from pkg_resources import require
-from PIL import Image
 from PIL.ExifTags import GPSTAGS, TAGS
 from PIL.TiffImagePlugin import IFDRational
-from PIL import Image
 from retinaface import RetinaFace
 from deepface.basemodels import ArcFace
 from deepface.commons import distance as dst
@@ -424,6 +423,11 @@ class Photo(db.Document):
         photo.save()
 
         return photo
+
+    def getB64Miniature(self) -> bytes:
+        image = self.miniature.read()
+        b64 = base64.b64encode(image)
+        return b64
 
     @property
     def date_elements(self):

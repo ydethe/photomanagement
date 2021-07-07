@@ -1,10 +1,5 @@
-from mongoengine.connection import disconnect
 from pkg_resources import require
 from datetime import datetime
-
-import time
-import base64
-import io
 
 from flask import (
     render_template,
@@ -66,6 +61,27 @@ def buildDisplayList(year: int, month: int, day: int) -> list:
     disp_list = list(dict.fromkeys(disp_list))
 
     return disp_list
+
+
+def str_to_datetime(txt: str) -> datetime:
+    if txt is None or txt == "":
+        return None
+
+    elem = txt.split(" ")
+    if len(elem) == 1:
+        date = datetime.strptime(txt, "%d/%m/%Y")
+    elif len(elem) == 2:
+        date = datetime.strptime(elem[0], "%d/%m/%Y")
+        elem_t = elem[1].split(":")
+        elem_t.extend(["00"] * (3 - len(elem_t)))
+        l_time = {}
+        for k, s in zip(["hour", "minute", "second"], elem_t):
+            l_time[k] = int(s)
+        date = date.replace(**l_time)
+    else:
+        date = None
+
+    return date
 
 
 def updateFaces(data: dict) -> str:
