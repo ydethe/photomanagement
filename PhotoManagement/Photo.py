@@ -160,7 +160,9 @@ def stringify_keys(md: dict) -> dict:
 
 face_detector = RetinaFace.build_model()
 face_recog = ArcFace.loadModel()
-face_recog.load_weights("/Users/ydethe/.deepface/weights/arcface_weights.h5")
+face_recog.load_weights(
+    os.path.expandvars("$HOME/.deepface/weights/arcface_weights.h5")
+)
 
 
 def detect_face(photo: Image) -> List[dict]:

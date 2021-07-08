@@ -106,7 +106,9 @@ class Face(db.Document):
         # Drawing a red rectangle on the photo to locate the person
         img_with_red_box_draw = ImageDraw.Draw(img)
         img_with_red_box_draw.rectangle(
-            [(self.left, self.upper), (self.right, self.lower)], outline="red", width=3,
+            [(self.left, self.upper), (self.right, self.lower)],
+            outline="red",
+            width=3,
         )
 
         img.show()
