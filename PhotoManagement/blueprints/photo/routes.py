@@ -14,6 +14,7 @@ from flask import (
     url_for,
     Markup,
 )
+from flask_login import login_required
 
 from ...AirtableManager import AirtableManager
 from ... import logger
@@ -26,12 +27,14 @@ from .utils import buildDisplayList, updateFaces, buildPersonsList, date_fmt
 
 
 @photo_bp.route("/personnes")
+@login_required
 def personnes():
     plist = buildPersonsList()
     return render_template("personnes.html", plist=plist)
 
 
 @photo_bp.route("/")
+@login_required
 def photo_defaults():
     return photo(year="", month="", day="", photo_id="")
 
@@ -46,6 +49,7 @@ def photo_defaults():
     "/<int:year>/<int:month>/<int:day>", defaults={"photo_id": ""},
 )
 @photo_bp.route("/<int:year>/<int:month>/<int:day>/<photo_id>", methods=["POST", "GET"])
+@login_required
 def photo(year, month, day, photo_id):
     # logger.debug("%s,%s,%s,%s"%(type(year),month,day,photo_id))
     if year == "":

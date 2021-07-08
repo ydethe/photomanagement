@@ -19,4 +19,7 @@ flask_nav==0.6
 deepface==0.0.53
 python-slugify==5.0.2
 sentry_sdk
-
+flask-login==0.5.0
+wtforms==2.3.3
+bcrypt==3.2.0
+flask-bcrypt==0.7.1

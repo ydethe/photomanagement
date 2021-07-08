@@ -12,6 +12,8 @@ from flask_mongoengine import MongoEngine
 from flask_bootstrap import Bootstrap
 from flask_nav import Nav
 from flask_nav.elements import *
+from flask_login import LoginManager
+from flask_bcrypt import Bcrypt
 from sentry_sdk.integrations.flask import FlaskIntegration
 
 from .LogFormatter import LogFormatter
@@ -67,8 +69,26 @@ app.config.from_object(Config)
 bootstrap = Bootstrap(app)
 app.logger.addHandler(file_handler)
 db = MongoEngine(app)
+bcrypt = Bcrypt(app)
 
 am = AirtableManager()
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "users.login"
+
+
+from .User import User
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.objects(id=user_id).get()
+
+
+# pwd=bcrypt.generate_password_hash('a,4Tosh!')
+# user=User(email='yann@johncloud.fr',hashed_pwd=pwd)
+# user.save()
 
 
 @app.route("/")
@@ -79,6 +99,10 @@ def index():
 from .blueprints.carte import carte_bp
 
 app.register_blueprint(carte_bp, url_prefix="/carte")
+
+from .blueprints.users import users_bp
+
+app.register_blueprint(users_bp, url_prefix="/users")
 
 from .blueprints.photo import photo_bp
 
@@ -94,6 +118,7 @@ topbar = Navbar(
     View("Photos", "photo.photo_defaults"),
     View("Personnes", "photo.personnes"),
     View("Recherche", "recherche.form"),
+    View("Déconnexion", "users.logout"),
 )
 
 # registers the "top" menubar

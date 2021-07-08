@@ -11,6 +11,7 @@ from flask import (
     url_for,
     Markup,
 )
+from flask_login import login_required
 
 from ...AirtableManager import AirtableManager
 from ... import logger
@@ -23,16 +24,27 @@ from ..photo.utils import buildPersonsList, str_to_datetime
 
 
 @recherche_bp.route("/form")
+@login_required
 def form():
     plist = buildPersonsList()
     return render_template("recherche.html", personslist=plist)
 
 
 @recherche_bp.route("/resultats", methods=["POST"])
+@login_required
 def resultats():
     q = Photo.objects()
     dateDebut = str_to_datetime(request.form.get("dateDebut", None))
     dateFin = str_to_datetime(request.form.get("dateFin", None))
+
+    # geo_photos = (
+    #     Photo.objects(date_taken__gte=dateDebut).filter(place_taken__ne=None).order_by("date_taken").first()
+    # )
+    # q_photos = (
+    #     Photo.objects(date_taken__gte=dateDebut).filter(date_taken__lte=geo_photos.date_taken).order_by("date_taken")
+    # )
+    # q_photos=[{'_id':p.id for p in q_photos}]
+
     lpers = request.form.getlist("inputPersonne")
     if not dateDebut is None:
         q = q.filter(date_taken__gte=dateDebut)
@@ -56,19 +68,6 @@ def resultats():
             }
         },
     ]
-
-    # Verif que les photos retournées conviennent
-    # q_photos = Photo.objects().aggregate(pipeline)
-    # for photo in q_photos:
-    #     photo_id=photo['_id']
-    #     for face in Photo.objects(id=photo_id).get().faces:
-    #         if face.person is None:
-    #             continue
-
-    #         print(str(face.person.id), lpers)
-    #         # if str(face.person.id) in lpers:
-    #         #     return
-    #     print()
 
     q_photos = Photo.objects().aggregate(pipeline)
     l_photo = []
