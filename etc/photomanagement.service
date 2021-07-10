@@ -1,0 +1,16 @@
+# /etc/systemd/system/vcf_to_airtable.service
+
+[Unit]
+Description=Gunicorn instance to serve PhotoManagement
+After=network.target
+
+[Service]
+User=ydethe
+Group=ydethe
+WorkingDirectory=/home/ydethe/photomanagement
+ExecStart=/usr/bin/zsh start.sh
+
+[Install]
+WantedBy=multi-user.target
+
+

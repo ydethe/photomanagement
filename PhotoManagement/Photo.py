@@ -23,7 +23,6 @@ from mongoengine import (
     URLField,
 )
 import numpy as np
-from tensorflow.python.keras.layers.merge import Add
 from tqdm import tqdm
 from mongoengine import signals
 from PIL import Image, ImageDraw, ImageFont
